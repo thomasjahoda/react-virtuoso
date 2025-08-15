@@ -22,7 +22,7 @@ export default tseslint.config(
     },
   },
   // perfectionist.configs['recommended-natural'],
-  eslintPluginPrettierRecommended,
+  // eslintPluginPrettierRecommended,
   {
     files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'],
     languageOptions: {

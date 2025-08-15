@@ -366,11 +366,12 @@ describe('list engine', () => {
     })
 
     it('probes with a group item / item tuple', () => {
-      const { groupCounts, listState, propsReady, scrollTop, viewportHeight } = init(listSystem)
+      const { groupCounts, headerStickinessPerGroup, listState, propsReady, scrollTop, viewportHeight } = init(listSystem)
       publish(groupCounts, [10, 10, 10])
       publish(scrollTop, 0)
       publish(viewportHeight, 200)
       publish(propsReady, true)
+      publish(headerStickinessPerGroup, undefined)
 
       expect(getValue(listState)).toMatchObject({
         items: [
@@ -381,12 +382,13 @@ describe('list engine', () => {
     })
 
     it('probes with a correct group item / item tuple for initialTopMostItemIndex ', () => {
-      const { groupCounts, initialTopMostItemIndex, listState, propsReady, scrollTop, viewportHeight } = init(listSystem)
+      const { groupCounts, headerStickinessPerGroup, initialTopMostItemIndex, listState, propsReady, scrollTop, viewportHeight } = init(listSystem)
       publish(initialTopMostItemIndex, 22)
       publish(groupCounts, [10, 10, 10])
       publish(scrollTop, 0)
       publish(viewportHeight, 200)
       publish(propsReady, true)
+      publish(headerStickinessPerGroup, undefined)
 
       expect(getValue(listState)).toMatchObject({
         items: [
@@ -397,11 +399,12 @@ describe('list engine', () => {
     })
 
     it('renders groups and items', () => {
-      const { groupCounts, listState, propsReady, scrollTop, sizeRanges, viewportHeight } = init(listSystem)
+      const { groupCounts, headerStickinessPerGroup, topItemsIndexes, listState, propsReady, scrollTop, sizeRanges, viewportHeight } = init(listSystem)
       publish(groupCounts, [3, 3, 3, 10])
       publish(scrollTop, 0)
       publish(viewportHeight, 200)
       publish(propsReady, true)
+      publish(headerStickinessPerGroup, undefined)
 
       publish(sizeRanges, [
         { endIndex: 0, size: 30, startIndex: 0 },
@@ -425,10 +428,45 @@ describe('list engine', () => {
           { index: 2, offset: 180, size: 30, type: 'group' },
         ],
       })
+
+      expect(getValue(topItemsIndexes)).toStrictEqual([0])
+    })
+
+    it('renders groups and items and considers stickiness', () => {
+      const { groupCounts, headerStickinessPerGroup, listState, propsReady, scrollTop, sizeRanges, viewportHeight } = init(listSystem)
+      publish(groupCounts, [3, 3, 3, 10])
+      publish(scrollTop, 0)
+      publish(viewportHeight, 200)
+      publish(propsReady, true)
+      publish(headerStickinessPerGroup, [false, false, false, false])
+
+      publish(sizeRanges, [
+        { endIndex: 0, size: 30, startIndex: 0 },
+        { endIndex: 5, size: 20, startIndex: 1 },
+      ])
+
+      expect(getValue(listState)).toMatchObject({
+        topItems: [],
+        topListHeight: 0,
+      })
+
+      expect(getValue(listState)).toMatchObject({
+        items: [
+          { index: 0, offset: 0, size: 30, type: 'group' },
+          { groupIndex: 0, index: 0, offset: 30, size: 20 },
+          { groupIndex: 0, index: 1, offset: 50, size: 20 },
+          { groupIndex: 0, index: 2, offset: 70, size: 20 },
+          { index: 1, offset: 90, size: 30, type: 'group' },
+          { groupIndex: 1, index: 3, offset: 120, size: 20 },
+          { groupIndex: 1, index: 4, offset: 140, size: 20 },
+          { groupIndex: 1, index: 5, offset: 160, size: 20 },
+          { index: 2, offset: 180, size: 30, type: 'group' },
+        ],
+      })
     })
 
     it('takes header height into account', () => {
-      const { groupCounts, headerHeight, listState, propsReady, scrollTop, sizeRanges, viewportHeight } = init(listSystem)
+      const { groupCounts, headerStickinessPerGroup, headerHeight, listState, propsReady, scrollTop, sizeRanges, viewportHeight } = init(listSystem)
       publish(
         groupCounts,
         Array.from({ length: 20 }, () => 3)
@@ -436,6 +474,7 @@ describe('list engine', () => {
       publish(scrollTop, 0)
       publish(viewportHeight, 300)
       publish(propsReady, true)
+      publish(headerStickinessPerGroup, undefined)
 
       publish(sizeRanges, [
         { endIndex: 0, size: 30, startIndex: 0 },

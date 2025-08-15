@@ -280,6 +280,8 @@ export interface GroupedTableVirtuosoProps<D, C> extends Omit<TableVirtuosoProps
    */
   groupCounts?: number[]
 
+  headerStickinessPerGroup?: boolean[]
+
   /**
    * Specifies how each each item gets rendered.
    */

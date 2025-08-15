@@ -487,6 +487,7 @@ export const {
       increaseViewportBy: 'increaseViewportBy',
       totalCount: 'totalCount',
       groupCounts: 'groupCounts',
+      headerStickinessPerGroup: 'headerStickinessPerGroup',
       topItemCount: 'topItemCount',
       firstItemIndex: 'firstItemIndex',
       initialTopMostItemIndex: 'initialTopMostItemIndex',

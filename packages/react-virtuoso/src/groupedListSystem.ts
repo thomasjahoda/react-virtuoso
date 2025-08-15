@@ -24,6 +24,7 @@ export function groupCountsToIndicesAndCount(counts: number[]) {
 export const groupedListSystem = u.system(
   ([{ groupIndices, sizes, totalCount }, { headerHeight, scrollTop }]) => {
     const groupCounts = u.stream<number[]>()
+    const headerStickinessPerGroup = u.stream<boolean[]>()
     const topItemsIndexes = u.stream<[number]>()
     const groupIndicesAndCount = u.streamFromEmitter(u.pipe(groupCounts, u.map(groupCountsToIndicesAndCount)))
     u.connect(
@@ -43,16 +44,31 @@ export const groupedListSystem = u.system(
 
     u.connect(
       u.pipe(
-        u.combineLatest(scrollTop, sizes, headerHeight),
+        u.combineLatest(scrollTop, sizes, headerHeight, headerStickinessPerGroup),
         u.filter(([_, sizes]) => hasGroups(sizes)),
-        u.map(([scrollTop, state, headerHeight]) => findMaxKeyValue(state.groupOffsetTree, Math.max(scrollTop - headerHeight, 0), 'v')[0]),
+        u.map(([scrollTop, state, headerHeight, headerStickinessPerGroup]) => {
+          const entry = findMaxKeyValue(state.groupOffsetTree, Math.max(scrollTop - headerHeight, 0), 'v')
+          const groupIndex = entry[0]
+          const sticky: boolean = headerStickinessPerGroup?.[groupIndex] ?? true
+          console.warn(
+            `groupedListSystem: groupIndex=${groupIndex}, sticky=${sticky}, scrollTop=${scrollTop}, headerHeight=${headerHeight}, entry=${JSON.stringify(entry)}`
+          )
+          return sticky ? groupIndex : null
+        }),
         u.distinctUntilChanged(),
-        u.map((index) => [index])
+        u.map((index) => {
+          // return [index];
+          if (index === null) {
+            return []
+          } else {
+            return [index]
+          }
+        })
       ),
       topItemsIndexes
     )
 
-    return { groupCounts, topItemsIndexes }
+    return { groupCounts, topItemsIndexes, headerStickinessPerGroup }
   },
   u.tup(sizeSystem, domIOSystem)
 )

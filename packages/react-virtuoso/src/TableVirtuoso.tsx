@@ -379,6 +379,7 @@ const {
       initialTopMostItemIndex: 'initialTopMostItemIndex',
       components: 'components',
       groupCounts: 'groupCounts',
+      headerStickinessPerGroup: 'headerStickinessPerGroup',
       atBottomThreshold: 'atBottomThreshold',
       atTopThreshold: 'atTopThreshold',
       computeItemKey: 'computeItemKey',

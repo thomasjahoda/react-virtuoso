@@ -88,7 +88,7 @@ export const listSystem = u.system(
     { scrollToIndex },
     _,
     { topItemCount },
-    { groupCounts },
+    { groupCounts, headerStickinessPerGroup },
     featureGroup1,
   ]) => {
     u.connect(flags.rangeChanged, featureGroup1.scrollSeekRangeChanged)
@@ -107,6 +107,7 @@ export const listSystem = u.system(
       fixedItemHeight: fixedItemSize,
       gap,
       groupCounts,
+      headerStickinessPerGroup,
       initialItemFinalLocationReached,
       initialTopMostItemIndex,
       scrolledToInitialItem,

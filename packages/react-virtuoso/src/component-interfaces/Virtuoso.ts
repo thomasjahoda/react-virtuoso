@@ -60,6 +60,8 @@ export interface GroupedVirtuosoProps<D = unknown, C = unknown> extends Omit<Vir
    */
   groupCounts?: number[]
 
+  headerStickinessPerGroup?: boolean[]
+
   /**
    * Specifies how each each item gets rendered.
    */

@@ -1,14 +1,14 @@
 {
-  "name": "react-virtuoso",
+  "name": "@thomasjahoda-forks/react-virtuoso",
   "description": "A virtual scroll React component for efficiently rendering large scrollable lists, grids, tables, and feeds",
   "author": "Petyo Ivanov",
   "sideEffects": false,
-  "version": "4.14.0",
+  "version": "4.14.1",
   "homepage": "https://virtuoso.dev/",
   "license": "MIT",
+  "type": "module",
   "source": "src/index.tsx",
-  "main": "dist/index.cjs",
-  "module": "dist/index.mjs",
+  "main": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "keywords": [
     "react",

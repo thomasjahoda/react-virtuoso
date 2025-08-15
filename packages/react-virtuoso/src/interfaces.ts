@@ -12,7 +12,7 @@ export interface CalculateViewLocationParams {
   viewportTop: number
 }
 
-export interface ContextProp<C> {
+export interface ContextProp<C = unknown> {
   context: C
 }
 
@@ -67,7 +67,7 @@ export interface Components<Data = unknown, Context = unknown> {
   TopItemList?: React.ComponentType<TopItemListProps & ContextProp<Context>>
 }
 
-export type ComputeItemKey<D, C> = (index: number, item: D, context: C) => React.Key
+export type ComputeItemKey<D, C = unknown> = (index: number, item: D, context: C) => React.Key
 /**
  * Passed to the Components.FillerRow custom component
  */
@@ -131,7 +131,7 @@ export interface GridComponents<Context = any> {
   ScrollSeekPlaceholder?: React.ComponentType<GridScrollSeekPlaceholderProps & ContextProp<Context>>
 }
 
-export type GridComputeItemKey<D, C> = (index: number, item: D, context: C) => React.Key
+export type GridComputeItemKey<D, C = unknown> = (index: number, item: D, context: C) => React.Key
 
 export type GridIndexLocation = FlatIndexLocationWithAlign | number
 
@@ -139,7 +139,7 @@ export interface GridItem<D> {
   data?: D
   index: number
 }
-export type GridItemContent<D, C> = (index: number, data: D, context: C) => React.ReactNode
+export type GridItemContent<D, C = unknown> = (index: number, data: D, context: C) => React.ReactNode
 
 /**
  * Passed to the Components.Item custom component
@@ -168,7 +168,7 @@ export interface GridScrollSeekPlaceholderProps {
   width: number
 }
 
-export type GroupContent<C> = (index: number, context: C) => React.ReactNode
+export type GroupContent<C = unknown> = (index: number, context: C) => React.ReactNode
 
 export interface GroupedScrollIntoViewLocation extends ScrollIntoViewLocationOptions {
   groupIndex: number
@@ -184,7 +184,7 @@ export interface GroupItem<D> extends Item<D> {
   originalIndex?: number
   type: 'group'
 }
-export type GroupItemContent<D, C> = (index: number, groupIndex: number, data: D, context: C) => React.ReactNode
+export type GroupItemContent<D, C = unknown> = (index: number, groupIndex: number, data: D, context: C) => React.ReactNode
 
 export type GroupProps = Pick<React.ComponentProps<'div'>, 'children' | 'style'> & {
   'data-index': number
@@ -200,7 +200,7 @@ export interface Item<D> {
   size: number
 }
 
-export type ItemContent<D, C> = (index: number, data: D, context: C) => React.ReactNode
+export type ItemContent<D, C = unknown> = (index: number, data: D, context: C) => React.ReactNode
 
 export type ItemProps<D> = Pick<React.ComponentProps<'div'>, 'children' | 'style'> & {
   'data-index': number

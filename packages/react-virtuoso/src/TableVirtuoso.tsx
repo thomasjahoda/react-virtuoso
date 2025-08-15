@@ -100,7 +100,7 @@ const DefaultFillerRow = ({ height }: { height: number }) => (
 )
 
 const ITEM_STYLE = { overflowAnchor: 'none' } as const
-const STICKY_ITEM_STYLE = { position: positionStickyCssValue(), zIndex: 2, overflowAnchor: 'none' } as const
+const STICKY_ITEM_STYLE = { position: positionStickyCssValue(), zIndex: 5, overflowAnchor: 'none' } as const
 
 const Items = /*#__PURE__*/ React.memo(function VirtuosoItems({ showTopList = false }: { showTopList?: boolean }) {
   const listState = useEmitterValue('listState')
@@ -324,7 +324,7 @@ const TableRoot: React.FC<TableRootProps> = /*#__PURE__*/ React.memo(function Ta
     <TheTHead
       key="TableHead"
       ref={theadRef}
-      style={{ position: 'sticky', top: 0, zIndex: 2 }}
+      style={{ position: 'sticky', top: 0, zIndex: 5 }}
       {...contextPropIfNotDomElement(TheTHead, context)}
     >
       {fixedHeaderContent()}
@@ -334,7 +334,7 @@ const TableRoot: React.FC<TableRootProps> = /*#__PURE__*/ React.memo(function Ta
     <TheTFoot
       key="TableFoot"
       ref={tfootRef}
-      style={{ bottom: 0, position: 'sticky', zIndex: 1 }}
+      style={{ bottom: 0, position: 'sticky', zIndex: 5 }}
       {...contextPropIfNotDomElement(TheTFoot, context)}
     >
       {fixedFooterContent()}

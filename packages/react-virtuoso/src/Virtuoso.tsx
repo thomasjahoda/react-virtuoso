@@ -66,7 +66,7 @@ const combinedSystem = /*#__PURE__*/ u.system(
 
 const DefaultScrollSeekPlaceholder = ({ height }: { height: number }) => <div style={{ height }}></div>
 
-const GROUP_STYLE = { overflowAnchor: 'none', position: positionStickyCssValue(), zIndex: 1 } as const
+const GROUP_STYLE = { overflowAnchor: 'none', position: positionStickyCssValue(), zIndex: 5 } as const
 const ITEM_STYLE = { overflowAnchor: 'none' } as const
 const HORIZONTAL_ITEM_STYLE = { ...ITEM_STYLE, display: 'inline-block', height: '100%' } as const
 
@@ -231,7 +231,7 @@ const topItemListStyle: React.CSSProperties = {
   position: positionStickyCssValue(),
   top: 0,
   width: '100%',
-  zIndex: 1,
+  zIndex: 5,
 }
 
 export function contextPropIfNotDomElement<C>(element: unknown, context: C): ContextProp<C> {

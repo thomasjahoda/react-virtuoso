@@ -1,6 +1,7 @@
 {
   "name": "@virtuoso.dev/monorepo",
   "private": true,
+  "type": "module",
   "scripts": {
     "ci": "turbo ci-setup && turbo react-virtuoso#build && turbo typecheck lint test e2e",
     "build": "turbo build",

@@ -33,7 +33,7 @@ export interface GroupedVirtuosoHandle {
   scrollToIndex(location: IndexLocationWithAlign | number): void
 }
 
-export interface GroupedVirtuosoProps<D, C> extends Omit<VirtuosoProps<D, C>, 'itemContent' | 'totalCount'> {
+export interface GroupedVirtuosoProps<D = unknown, C = unknown> extends Omit<VirtuosoProps<D, C>, 'itemContent' | 'totalCount'> {
   /**
    * Use when implementing inverse infinite scrolling, decrease the value this property
    * in combination with a change in `groupCounts` to prepend groups items to the top of the list.
@@ -94,7 +94,7 @@ export interface VirtuosoHandle {
   scrollToIndex(location: FlatIndexLocationWithAlign | number): void
 }
 
-export interface VirtuosoProps<D, C> extends ListRootProps {
+export interface VirtuosoProps<D, C = unknown> extends ListRootProps {
   /**
    * Setting `alignToBottom` to `true` aligns the items to the bottom of the list if the list is shorter than the viewport.
    * Use `followOutput` property to keep the list aligned when new items are appended.

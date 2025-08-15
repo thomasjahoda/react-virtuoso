@@ -47,13 +47,19 @@ export const groupedListSystem = u.system(
         u.combineLatest(scrollTop, sizes, headerHeight, headerStickinessPerGroup),
         u.filter(([_, sizes]) => hasGroups(sizes)),
         u.map(([scrollTop, state, headerHeight, headerStickinessPerGroup]) => {
-          const entry = findMaxKeyValue(state.groupOffsetTree, Math.max(scrollTop - headerHeight, 0), 'v')
-          const groupIndex = entry[0]
-          const sticky: boolean = headerStickinessPerGroup?.[groupIndex] ?? true
-          console.warn(
-            `groupedListSystem: groupIndex=${groupIndex}, sticky=${sticky}, scrollTop=${scrollTop}, headerHeight=${headerHeight}, entry=${JSON.stringify(entry)}`
-          )
-          return sticky ? groupIndex : null
+          const currentGroupEntry = findMaxKeyValue(state.groupOffsetTree, Math.max(scrollTop - headerHeight, 0), 'v')
+          const currentGroupElementOffset = currentGroupEntry[0]
+          let sticky = true
+          if (headerStickinessPerGroup !== undefined) {
+            const groupIndex = state.groupIndices.findIndex(
+              (groupElementIndexOffset) => groupElementIndexOffset === currentGroupElementOffset
+            )
+            sticky = headerStickinessPerGroup?.[groupIndex] ?? true
+            // console.warn(
+            //   `groupedListSystem: groupIndex=${groupIndex}, sticky=${sticky}, scrollTop=${scrollTop}, headerHeight=${headerHeight}, entry=${JSON.stringify(currentGroupEntry)}`
+            // )
+          }
+          return sticky ? currentGroupElementOffset : null
         }),
         u.distinctUntilChanged(),
         u.map((index) => {

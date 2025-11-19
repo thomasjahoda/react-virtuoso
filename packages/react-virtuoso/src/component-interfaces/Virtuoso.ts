@@ -227,6 +227,12 @@ export interface VirtuosoProps<D, C = unknown> extends ListRootProps {
   horizontalDirection?: boolean
 
   /**
+   * When set, improves behavior during resizes by keeping the maximum seen viewport height for layout purposes.
+   * Also rounds up viewport height to the nearest multiple of 100 to reduce impact when increasing the viewport height in tiny steps.
+   */
+  keepMaximumViewportHeight?: boolean
+
+  /**
    *
    * *The property accepts pixel values.*
    *

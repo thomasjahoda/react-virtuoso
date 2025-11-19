@@ -18,6 +18,7 @@ export const domIOSystem = u.system(
     const scrollBy = u.stream<ScrollToOptions>()
     const scrollingInProgress = u.statefulStream(false)
     const horizontalDirection = u.statefulStream(false)
+    const keepMaximumViewportHeight = u.statefulStream(false)
     const skipAnimationFrameInResizeObserver = u.statefulStream(false)
 
     u.connect(
@@ -45,6 +46,7 @@ export const domIOSystem = u.system(
       footerHeight,
       headerHeight,
       horizontalDirection,
+      keepMaximumViewportHeight,
       scrollBy,
       // input
       scrollContainerState,

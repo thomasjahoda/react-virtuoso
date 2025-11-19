@@ -386,16 +386,23 @@ const Viewport: React.FC<React.PropsWithChildren> = ({ children }) => {
   const alignToBottom = useEmitterValue('alignToBottom')
 
   const horizontalDirection = useEmitterValue('horizontalDirection')
+  const keepMaximumViewportHeight = useEmitterValue('keepMaximumViewportHeight')
   const viewportSizeCallbackMemo = React.useMemo(() => {
-    // TODO thomas: introduce configuration parameter for this behavior (maxKnownViewportHeight) to not fuck up big time on resizes
-    // TODO thomas: introduce configuration parameter to round viewportHeight to larger steps (e.g. 100px) to not fuck up big time on resizes
+    // TODO thomas: [fork-cleanup] refactor so this is in the system somewhere via pipes. Just introduce additional streams for the domViewportHeight or something. Well actually it would be best to rename to viewportHeight to effectiveLayoutViewportHeight or something, but that would imply it should also already contain stuff like increaseViewportBy. So maybe move changes to sizeRangeSystem? Maybe that is enough?
+    // TODO thomas: add minViewportSize parameter which will probably be set to window.innerHeight by the user, so that the viewportHeight will probably never ever change and therefore never cause any issue like that. Also enables first-frame-renders.
     let maxKnownViewportHeight = 0
     return u.compose(viewportHeight, (el: HTMLElement) => {
+      // TODO thomas: [bug?] maybe this hack breaks scrollTo functionality because virtuoso has different sizes than the real ones? Scroll logic seems to use actual dimensions anyhow and not the stream values though? not completely sure. Seems to be in useScrollTop for whatever reason I think
+      //  Ah, yes it might actually be affected due to scrollToIndexSystem, where viewportHeight is actually used. But it also already seems broken, because even without my changes it cannot handle small viewports... Idk what happens there...
       const size = correctItemSize(el, horizontalDirection ? 'width' : 'height')
-      maxKnownViewportHeight = Math.max(maxKnownViewportHeight, size)
-      return ceilToStep(maxKnownViewportHeight, 100)
+      if (keepMaximumViewportHeight) {
+        maxKnownViewportHeight = Math.max(maxKnownViewportHeight, size)
+        return ceilToStep(maxKnownViewportHeight, 100)
+      } else {
+        return size
+      }
     })
-  }, [viewportHeight, horizontalDirection])
+  }, [viewportHeight, horizontalDirection, keepMaximumViewportHeight])
   const viewportRef = useSize(viewportSizeCallbackMemo, true, useEmitterValue('skipAnimationFrameInResizeObserver'))
 
   React.useEffect(() => {
@@ -515,6 +522,7 @@ export const {
       scrollerRef: 'scrollerRef',
       logLevel: 'logLevel',
       horizontalDirection: 'horizontalDirection',
+      keepMaximumViewportHeight: 'keepMaximumViewportHeight',
       skipAnimationFrameInResizeObserver: 'skipAnimationFrameInResizeObserver',
     },
     methods: {

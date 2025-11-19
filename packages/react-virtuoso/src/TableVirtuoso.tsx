@@ -248,11 +248,15 @@ const Viewport: React.FC<React.PropsWithChildren> = ({ children }) => {
   const ctx = React.useContext(VirtuosoMockContext)
   const viewportHeight = usePublisher('viewportHeight')
   const fixedItemHeight = usePublisher('fixedItemHeight')
-  const viewportRef = useSize(
-    React.useMemo(() => u.compose(viewportHeight, (el) => correctItemSize(el, 'height')), [viewportHeight]),
-    true,
-    useEmitterValue('skipAnimationFrameInResizeObserver')
-  )
+  const viewportSizeCallbackMemo = React.useMemo(() => {
+    let maxKnownViewportHeight = 0
+    return u.compose(viewportHeight, (el: HTMLElement) => {
+      const size = correctItemSize(el, 'height')
+      maxKnownViewportHeight = Math.max(maxKnownViewportHeight, size)
+      return maxKnownViewportHeight
+    })
+  }, [viewportHeight])
+  const viewportRef = useSize(viewportSizeCallbackMemo, true, useEmitterValue('skipAnimationFrameInResizeObserver'))
 
   React.useEffect(() => {
     if (ctx) {

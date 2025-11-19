@@ -12,7 +12,7 @@ import { listSystem } from './listSystem'
 import { systemToComponent } from './react-urx'
 import * as u from './urx'
 import { VirtuosoMockContext } from './utils/context'
-import { correctItemSize } from './utils/correctItemSize'
+import { ceilToStep, correctItemSize } from './utils/correctItemSize'
 import { positionStickyCssValue } from './utils/positionStickyCssValue'
 
 export function identity<T>(value: T) {
@@ -386,10 +386,16 @@ const Viewport: React.FC<React.PropsWithChildren> = ({ children }) => {
   const alignToBottom = useEmitterValue('alignToBottom')
 
   const horizontalDirection = useEmitterValue('horizontalDirection')
-  const viewportSizeCallbackMemo = React.useMemo(
-    () => u.compose(viewportHeight, (el: HTMLElement) => correctItemSize(el, horizontalDirection ? 'width' : 'height')),
-    [viewportHeight, horizontalDirection]
-  )
+  const viewportSizeCallbackMemo = React.useMemo(() => {
+    // TODO thomas: introduce configuration parameter for this behavior (maxKnownViewportHeight) to not fuck up big time on resizes
+    // TODO thomas: introduce configuration parameter to round viewportHeight to larger steps (e.g. 100px) to not fuck up big time on resizes
+    let maxKnownViewportHeight = 0
+    return u.compose(viewportHeight, (el: HTMLElement) => {
+      const size = correctItemSize(el, horizontalDirection ? 'width' : 'height')
+      maxKnownViewportHeight = Math.max(maxKnownViewportHeight, size)
+      return ceilToStep(maxKnownViewportHeight, 100)
+    })
+  }, [viewportHeight, horizontalDirection])
   const viewportRef = useSize(viewportSizeCallbackMemo, true, useEmitterValue('skipAnimationFrameInResizeObserver'))
 
   React.useEffect(() => {

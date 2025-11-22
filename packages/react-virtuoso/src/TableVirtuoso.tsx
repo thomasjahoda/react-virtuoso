@@ -246,24 +246,21 @@ const TableBody = /*#__PURE__*/ React.memo(function TableVirtuosoBody() {
 
 const Viewport: React.FC<React.PropsWithChildren> = ({ children }) => {
   const ctx = React.useContext(VirtuosoMockContext)
-  const viewportHeight = usePublisher('viewportHeight')
+  const rawViewportHeight = usePublisher('rawViewportHeight')
   const fixedItemHeight = usePublisher('fixedItemHeight')
   const viewportSizeCallbackMemo = React.useMemo(() => {
-    let maxKnownViewportHeight = 0
-    return u.compose(viewportHeight, (el: HTMLElement) => {
-      const size = correctItemSize(el, 'height')
-      maxKnownViewportHeight = Math.max(maxKnownViewportHeight, size)
-      return maxKnownViewportHeight
+    return u.compose(rawViewportHeight, (el: HTMLElement) => {
+      return correctItemSize(el, 'height')
     })
-  }, [viewportHeight])
+  }, [rawViewportHeight])
   const viewportRef = useSize(viewportSizeCallbackMemo, true, useEmitterValue('skipAnimationFrameInResizeObserver'))
 
   React.useEffect(() => {
     if (ctx) {
-      viewportHeight(ctx.viewportHeight)
+      rawViewportHeight(ctx.viewportHeight)
       fixedItemHeight(ctx.itemHeight)
     }
-  }, [ctx, viewportHeight, fixedItemHeight])
+  }, [ctx, rawViewportHeight, fixedItemHeight])
 
   return (
     <div data-viewport-type="element" ref={viewportRef} style={viewportStyle(false)}>
@@ -274,11 +271,11 @@ const Viewport: React.FC<React.PropsWithChildren> = ({ children }) => {
 
 const WindowViewport: React.FC<React.PropsWithChildren> = ({ children }) => {
   const ctx = React.useContext(VirtuosoMockContext)
-  const windowViewportRect = usePublisher('windowViewportRect')
+  const rawWindowViewportRect = usePublisher('rawWindowViewportRect')
   const fixedItemHeight = usePublisher('fixedItemHeight')
   const customScrollParent = useEmitterValue('customScrollParent')
   const viewportRef = useWindowViewportRectRef(
-    windowViewportRect,
+    rawWindowViewportRect,
     customScrollParent,
     useEmitterValue('skipAnimationFrameInResizeObserver')
   )
@@ -286,9 +283,9 @@ const WindowViewport: React.FC<React.PropsWithChildren> = ({ children }) => {
   React.useEffect(() => {
     if (ctx) {
       fixedItemHeight(ctx.itemHeight)
-      windowViewportRect({ offsetTop: 0, visibleHeight: ctx.viewportHeight, visibleWidth: 100 })
+      rawWindowViewportRect({ offsetTop: 0, visibleHeight: ctx.viewportHeight, visibleWidth: 100 })
     }
-  }, [ctx, windowViewportRect, fixedItemHeight])
+  }, [ctx, rawWindowViewportRect, fixedItemHeight])
 
   return (
     <div data-viewport-type="window" ref={viewportRef} style={viewportStyle(false)}>

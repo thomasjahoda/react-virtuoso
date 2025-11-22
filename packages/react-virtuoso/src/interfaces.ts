@@ -250,6 +250,7 @@ export interface RecordItem<D> extends Item<D> {
 export interface ScrollContainerState {
   scrollHeight: number
   scrollTop: number
+  // TODO this again comes from another source and should probably respect keepMaximumViewportHeight?
   viewportHeight: number
 }
 

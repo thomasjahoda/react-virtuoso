@@ -226,17 +226,17 @@ const Viewport: React.FC<React.PropsWithChildren> = ({ children }) => {
 
 const WindowViewport: React.FC<React.PropsWithChildren> = ({ children }) => {
   const ctx = React.useContext(VirtuosoGridMockContext)
-  const windowViewportRect = usePublisher('windowViewportRect')
+  const rawWindowViewportRect = usePublisher('rawWindowViewportRect')
   const itemDimensions = usePublisher('itemDimensions')
   const customScrollParent = useEmitterValue('customScrollParent')
-  const viewportRef = useWindowViewportRectRef(windowViewportRect, customScrollParent, false)
+  const viewportRef = useWindowViewportRectRef(rawWindowViewportRect, customScrollParent, false)
 
   React.useEffect(() => {
     if (ctx) {
       itemDimensions({ height: ctx.itemHeight, width: ctx.itemWidth })
-      windowViewportRect({ offsetTop: 0, visibleHeight: ctx.viewportHeight, visibleWidth: ctx.viewportWidth })
+      rawWindowViewportRect({ offsetTop: 0, visibleHeight: ctx.viewportHeight, visibleWidth: ctx.viewportWidth })
     }
-  }, [ctx, windowViewportRect, itemDimensions])
+  }, [ctx, rawWindowViewportRect, itemDimensions])
 
   return (
     <div ref={viewportRef} style={viewportStyle(false)}>

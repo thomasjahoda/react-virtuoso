@@ -12,7 +12,7 @@ import { listSystem } from './listSystem'
 import { systemToComponent } from './react-urx'
 import * as u from './urx'
 import { VirtuosoMockContext } from './utils/context'
-import { ceilToStep, correctItemSize } from './utils/correctItemSize'
+import { correctItemSize } from './utils/correctItemSize'
 import { positionStickyCssValue } from './utils/positionStickyCssValue'
 
 export function identity<T>(value: T) {
@@ -381,36 +381,23 @@ export function buildWindowScroller({ useEmitter, useEmitterValue, usePublisher 
 
 const Viewport: React.FC<React.PropsWithChildren> = ({ children }) => {
   const ctx = React.useContext(VirtuosoMockContext)
-  const viewportHeight = usePublisher('viewportHeight')
+  const rawViewportHeight = usePublisher('rawViewportHeight')
   const fixedItemHeight = usePublisher('fixedItemHeight')
   const alignToBottom = useEmitterValue('alignToBottom')
 
   const horizontalDirection = useEmitterValue('horizontalDirection')
-  const keepMaximumViewportHeight = useEmitterValue('keepMaximumViewportHeight')
-  const viewportSizeCallbackMemo = React.useMemo(() => {
-    // TODO thomas: [fork-cleanup] refactor so this is in the system somewhere via pipes. Just introduce additional streams for the domViewportHeight or something. Well actually it would be best to rename to viewportHeight to effectiveLayoutViewportHeight or something, but that would imply it should also already contain stuff like increaseViewportBy. So maybe move changes to sizeRangeSystem? Maybe that is enough?
-    // TODO thomas: add minViewportSize parameter which will probably be set to window.innerHeight by the user, so that the viewportHeight will probably never ever change and therefore never cause any issue like that. Also enables first-frame-renders.
-    let maxKnownViewportHeight = 0
-    return u.compose(viewportHeight, (el: HTMLElement) => {
-      // TODO thomas: [bug?] maybe this hack breaks scrollTo functionality because virtuoso has different sizes than the real ones? Scroll logic seems to use actual dimensions anyhow and not the stream values though? not completely sure. Seems to be in useScrollTop for whatever reason I think
-      //  Ah, yes it might actually be affected due to scrollToIndexSystem, where viewportHeight is actually used. But it also already seems broken, because even without my changes it cannot handle small viewports... Idk what happens there...
-      const size = correctItemSize(el, horizontalDirection ? 'width' : 'height')
-      if (keepMaximumViewportHeight) {
-        maxKnownViewportHeight = Math.max(maxKnownViewportHeight, size)
-        return ceilToStep(maxKnownViewportHeight, 100)
-      } else {
-        return size
-      }
-    })
-  }, [viewportHeight, horizontalDirection, keepMaximumViewportHeight])
+  const viewportSizeCallbackMemo = React.useMemo(
+    () => u.compose(rawViewportHeight, (el: HTMLElement) => correctItemSize(el, horizontalDirection ? 'width' : 'height')),
+    [rawViewportHeight, horizontalDirection]
+  )
   const viewportRef = useSize(viewportSizeCallbackMemo, true, useEmitterValue('skipAnimationFrameInResizeObserver'))
 
   React.useEffect(() => {
     if (ctx) {
-      viewportHeight(ctx.viewportHeight)
+      rawViewportHeight(ctx.viewportHeight)
       fixedItemHeight(ctx.itemHeight)
     }
-  }, [ctx, viewportHeight, fixedItemHeight])
+  }, [ctx, rawViewportHeight, fixedItemHeight])
 
   return (
     <div data-viewport-type="element" ref={viewportRef} style={viewportStyle(alignToBottom)}>
@@ -421,11 +408,11 @@ const Viewport: React.FC<React.PropsWithChildren> = ({ children }) => {
 
 const WindowViewport: React.FC<React.PropsWithChildren> = ({ children }) => {
   const ctx = React.useContext(VirtuosoMockContext)
-  const windowViewportRect = usePublisher('windowViewportRect')
+  const rawWindowViewportRect = usePublisher('rawWindowViewportRect')
   const fixedItemHeight = usePublisher('fixedItemHeight')
   const customScrollParent = useEmitterValue('customScrollParent')
   const viewportRef = useWindowViewportRectRef(
-    windowViewportRect,
+    rawWindowViewportRect,
     customScrollParent,
     useEmitterValue('skipAnimationFrameInResizeObserver')
   )
@@ -434,9 +421,9 @@ const WindowViewport: React.FC<React.PropsWithChildren> = ({ children }) => {
   React.useEffect(() => {
     if (ctx) {
       fixedItemHeight(ctx.itemHeight)
-      windowViewportRect({ offsetTop: 0, visibleHeight: ctx.viewportHeight, visibleWidth: 100 })
+      rawWindowViewportRect({ offsetTop: 0, visibleHeight: ctx.viewportHeight, visibleWidth: 100 })
     }
-  }, [ctx, windowViewportRect, fixedItemHeight])
+  }, [ctx, rawWindowViewportRect, fixedItemHeight])
 
   return (
     <div data-viewport-type="window" ref={viewportRef} style={viewportStyle(alignToBottom)}>

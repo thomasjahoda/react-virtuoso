@@ -69,7 +69,7 @@ export interface GroupedVirtuosoHandle {
  * @see {@link GroupedVirtuosoHandle} for imperative methods
  * @group GroupedVirtuoso
  */
-export interface GroupedVirtuosoProps<Data, Context = unknown> extends Omit<VirtuosoProps<Data, Context>, 'itemContent' | 'totalCount'> {
+export interface GroupedVirtuosoProps<Data = unknown, Context = unknown> extends Omit<VirtuosoProps<Data, Context>, 'itemContent' | 'totalCount'> {
   /**
    * Use when implementing inverse infinite scrolling, decrease the value this property
    * in combination with a change in `groupCounts` to prepend groups items to the top of the list.

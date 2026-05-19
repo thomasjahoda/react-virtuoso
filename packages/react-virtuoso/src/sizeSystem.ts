@@ -492,10 +492,7 @@ export const sizeSystem = u.system(
           },
           { changed: false, sizes: initial }
         ),
-        u.map((value) => {
-          console.debug('[virtuoso sizeSystem] listRefresh', { changed: value.changed })
-          return value.changed
-        })
+        u.map((value) => value.changed)
       )
     )
 

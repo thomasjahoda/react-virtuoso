@@ -33,11 +33,13 @@ export const domIOSystem = u.system(
             return rawViewportHeight
           }
 
+          // oxlint-disable-next-line no-warning-comments
           // TODO thomas: [bug?] maybe this hack of how keepMaximumViewportHeight is implemented at the root (also with windowViewportRect which also pipes to viewportHeight) breaks scrollTo functionality because virtuoso has different sizes than the real ones? Scroll logic seems to use actual dimensions anyhow and not the stream values though? not completely sure. Seems to be in useScrollTop for whatever reason I think
           //  Ah, yes it might actually be affected due to scrollToIndexSystem, where rawViewportHeight is actually used. But it also already seems broken, because even without my changes it cannot handle small viewports... Idk what happens there...
           if (maxKnownViewportHeight < rawViewportHeight) {
             maxKnownViewportHeight = rawViewportHeight
           }
+          // oxlint-disable-next-line no-warning-comments
           // TODO thomas: [fork-cleanup] add property to do this ceilToStep thing
           return ceilToStep(maxKnownViewportHeight, 100)
         }),

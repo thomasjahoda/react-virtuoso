@@ -66,9 +66,8 @@ export const groupedListSystem = u.system(
           // return [index];
           if (index === null) {
             return []
-          } else {
-            return [index]
           }
+          return [index]
         })
       ),
       topItemsIndexes

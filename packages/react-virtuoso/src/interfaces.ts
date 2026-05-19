@@ -534,6 +534,7 @@ export interface ScrollContainerState {
   /** The current scroll position from the top in pixels */
   scrollTop: number
   /** The visible height of the viewport in pixels */
+  // oxlint-disable-next-line no-warning-comments
   // TODO this again comes from another source and should probably respect keepMaximumViewportHeight?
   viewportHeight: number
 }

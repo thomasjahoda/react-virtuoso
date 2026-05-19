@@ -1,5 +1,7 @@
 import React from 'react'
 
+import useIsomorphicLayoutEffect from './useIsomorphicLayoutEffect'
+
 export type CallbackRefParam = HTMLElement | null
 
 export default function useSize(callback: (e: HTMLElement) => void, enabled: boolean, skipAnimationFrame: boolean) {
@@ -39,6 +41,19 @@ export function useSizeWithElRef(callback: (e: HTMLElement) => void, enabled: bo
       ref.current = null
     }
   }
+
+  // Synchronously measure the element pre-paint to avoid a first-frame blank
+  // render. The ResizeObserver fires post-paint (microtask + rAF), so without
+  // this the first commit has no viewport height in the stream and the list
+  // renders zero items until the observer fires.
+  // Subsequent observer publishes with the same value are filtered downstream
+  // (viewportHeight uses distinctUntilChanged; rawWindowViewportRect is
+  // de-duplicated inside its calculateInfo callback).
+  useIsomorphicLayoutEffect(() => {
+    if (enabled && ref.current && ref.current.offsetParent !== null) {
+      callback(ref.current)
+    }
+  }, [callback, enabled])
 
   return { callbackRef, ref }
 }

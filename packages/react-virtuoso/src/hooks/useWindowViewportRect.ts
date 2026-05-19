@@ -32,14 +32,26 @@ export default function useWindowViewportRectRef(
         offsetTop = rect.top + theElementWindow.scrollY
       }
 
-      viewportInfo.current = {
+      const next: WindowViewportInfo = {
         listHeight: rect.height,
         offsetTop,
         visibleHeight,
         visibleWidth,
       }
 
-      callback(viewportInfo.current)
+      const prev = viewportInfo.current
+      if (
+        prev !== null &&
+        prev.listHeight === next.listHeight &&
+        prev.offsetTop === next.offsetTop &&
+        prev.visibleHeight === next.visibleHeight &&
+        prev.visibleWidth === next.visibleWidth
+      ) {
+        return
+      }
+
+      viewportInfo.current = next
+      callback(next)
     },
     // oxlint-disable-next-line exhaustive-deps
     [callback, customScrollParent]

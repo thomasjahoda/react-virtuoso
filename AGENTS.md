@@ -193,6 +193,12 @@ Known limitations (see inline TODO comments):
 
 ---
 
+## Agent rules
+
+- `dangerouslyDisableSandbox`: only for `npm publish` / `pnpm publish`. Never for git, file ops, or anything else.
+
+---
+
 ## Docs directory
 
 See `docs/` (if created) for deep-dives:

@@ -43,7 +43,7 @@ export const windowScrollerSystem = u.system(([{ scrollContainerState, scrollTo,
               offsetTop: rawWindowViewportRect.offsetTop,
               visibleWidth: rawWindowViewportRect.visibleWidth,
               // oxlint-disable-next-line no-warning-comments
-            // TODO thomas: [fork-cleanup] add property to do this ceilToStep thing
+              // TODO thomas: [fork-cleanup] add property to do this ceilToStep thing
               visibleHeight: ceilToStep(Math.max(maximumWindowViewportRect.visibleHeight, rawWindowViewportRect.visibleHeight), 100),
             }
           }

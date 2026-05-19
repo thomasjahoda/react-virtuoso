@@ -3,5 +3,5 @@ export function correctItemSize(el: HTMLElement, dimension: 'height' | 'width') 
 }
 
 export function ceilToStep(value: number, step: number): number {
-  return Math.ceil(value / step) * step;
+  return Math.ceil(value / step) * step
 }

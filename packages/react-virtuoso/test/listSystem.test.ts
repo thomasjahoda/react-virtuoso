@@ -383,7 +383,8 @@ describe('list engine', () => {
     })
 
     it('probes with a correct group item / item tuple for initialTopMostItemIndex ', () => {
-      const { groupCounts, headerStickinessPerGroup, initialTopMostItemIndex, listState, propsReady, scrollTop, viewportHeight } = init(listSystem)
+      const { groupCounts, headerStickinessPerGroup, initialTopMostItemIndex, listState, propsReady, scrollTop, viewportHeight } =
+        init(listSystem)
       publish(initialTopMostItemIndex, 22)
       publish(groupCounts, [10, 10, 10])
       publish(scrollTop, 0)
@@ -400,7 +401,8 @@ describe('list engine', () => {
     })
 
     it('renders groups and items', () => {
-      const { groupCounts, headerStickinessPerGroup, topItemsIndexes, listState, propsReady, scrollTop, sizeRanges, viewportHeight } = init(listSystem)
+      const { groupCounts, headerStickinessPerGroup, topItemsIndexes, listState, propsReady, scrollTop, sizeRanges, viewportHeight } =
+        init(listSystem)
       publish(groupCounts, [3, 3, 3, 10])
       publish(scrollTop, 0)
       publish(viewportHeight, 200)
@@ -467,7 +469,8 @@ describe('list engine', () => {
     })
 
     it('takes header height into account', () => {
-      const { groupCounts, headerStickinessPerGroup, headerHeight, listState, propsReady, scrollTop, sizeRanges, viewportHeight } = init(listSystem)
+      const { groupCounts, headerStickinessPerGroup, headerHeight, listState, propsReady, scrollTop, sizeRanges, viewportHeight } =
+        init(listSystem)
       publish(
         groupCounts,
         Array.from({ length: 20 }, () => 3)

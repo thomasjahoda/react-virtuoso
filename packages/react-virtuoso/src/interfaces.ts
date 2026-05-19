@@ -110,7 +110,6 @@ export interface Components<Data = unknown, Context = unknown> {
  */
 export type ComputeItemKey<Data, Context> = (index: number, item: Data, context: Context) => React.Key
 
-
 /**
  * Passed to the Components.FillerRow custom component
  * @group TableVirtuoso

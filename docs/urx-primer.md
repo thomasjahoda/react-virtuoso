@@ -8,7 +8,7 @@ The library uses a custom reactive stream system called **urx** (`src/urx/`). Al
 import * as u from './urx'
 
 // statefulStream: holds latest value, emits to new subscribers immediately
-const count = u.statefulStream(0)       // initial value 0
+const count = u.statefulStream(0) // initial value 0
 
 // stream: no initial value, only emits when published
 const scrollTo = u.stream<ScrollToOptions>()
@@ -41,19 +41,23 @@ A system is a module of related streams:
 
 ```ts
 export const mySystem = u.system(
-  ([dep1, dep2]) => {              // receives dependency system outputs
+  ([dep1, dep2]) => {
+    // receives dependency system outputs
     const foo = u.statefulStream(0)
     const bar = u.stream<string>()
 
     u.connect(
-      u.pipe(foo, u.map(n => n.toString())),
+      u.pipe(
+        foo,
+        u.map((n) => n.toString())
+      ),
       bar
     )
 
-    return { foo, bar }            // exports
+    return { foo, bar } // exports
   },
-  u.tup(dep1System, dep2System),  // dependencies
-  { singleton: true }             // optional: one instance per component tree
+  u.tup(dep1System, dep2System), // dependencies
+  { singleton: true } // optional: one instance per component tree
 )
 ```
 
@@ -64,19 +68,18 @@ Systems compose: `u.tup(a, b, c)` declares dependencies. The constructor receive
 `systemToComponent(systemSpec, propMap, RootComponent?)` wraps a system as a React component:
 
 ```ts
-export const { Component, useEmitterValue, usePublisher, useEmitter } =
-  systemToComponent(listSystem, {
-    optional: {
-      totalCount: 'totalCount',         // prop name → stream name
-      data: 'data',
-    },
-    methods: {
-      scrollToIndex: 'scrollToIndex',   // imperative method → stream
-    },
-    events: {
-      onScroll: 'scrollContainerState', // callback prop → stream subscription
-    },
-  })
+export const { Component, useEmitterValue, usePublisher, useEmitter } = systemToComponent(listSystem, {
+  optional: {
+    totalCount: 'totalCount', // prop name → stream name
+    data: 'data',
+  },
+  methods: {
+    scrollToIndex: 'scrollToIndex', // imperative method → stream
+  },
+  events: {
+    onScroll: 'scrollContainerState', // callback prop → stream subscription
+  },
+})
 ```
 
 ### Hooks inside the component tree
@@ -131,12 +134,12 @@ u.combineLatest(
 
 ## Key streams for list rendering
 
-| Stream | Type | Description |
-|--------|------|-------------|
-| `rawViewportHeight` | `stream<number>` | Raw height from ResizeObserver |
-| `viewportHeight` | `stream<number>` | Final height (may be max-clamped) |
-| `scrollTop` | `stream<number>` | Current scroll offset |
-| `visibleRange` | stateful `[start, end]` | Index range of items to render |
-| `listState` | stateful | Full computed list descriptor |
-| `totalCount` | stateful | Total item count |
-| `sizes` | stateful | Measured item sizes (AATree) |
+| Stream              | Type                    | Description                       |
+| ------------------- | ----------------------- | --------------------------------- |
+| `rawViewportHeight` | `stream<number>`        | Raw height from ResizeObserver    |
+| `viewportHeight`    | `stream<number>`        | Final height (may be max-clamped) |
+| `scrollTop`         | `stream<number>`        | Current scroll offset             |
+| `visibleRange`      | stateful `[start, end]` | Index range of items to render    |
+| `listState`         | stateful                | Full computed list descriptor     |
+| `totalCount`        | stateful                | Total item count                  |
+| `sizes`             | stateful                | Measured item sizes (AATree)      |

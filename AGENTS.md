@@ -26,14 +26,14 @@ apps/                          ← dev/docs app (virtuoso.dev)
 
 ### Build / test commands
 
-| Task | Command |
-|------|---------|
-| Build | `npm run build` |
-| Unit tests | `npm run test` (vitest) |
+| Task         | Command                                         |
+| ------------ | ----------------------------------------------- |
+| Build        | `npm run build`                                 |
+| Unit tests   | `npm run test` (vitest)                         |
 | Run one test | `npx vitest <file>` or `npx vitest -t "<name>"` |
-| E2E tests | `npm run e2e` or `npx playwright test <file>` |
-| Dev server | `npm run dev` |
-| Lint | `npm run lint` |
+| E2E tests    | `npm run e2e` or `npx playwright test <file>`   |
+| Dev server   | `npm run dev`                                   |
+| Lint         | `npm run lint`                                  |
 
 ---
 
@@ -44,6 +44,7 @@ apps/                          ← dev/docs app (virtuoso.dev)
 All state lives in **urx streams**. The library has zero useState calls for list logic; instead it uses a custom reactive stream system (`packages/react-virtuoso/src/urx/`).
 
 Key urx concepts:
+
 - `statefulStream(initial)` — holds a value, emits to new subscribers immediately
 - `stream<T>()` — no initial value; only emits when published to; `combineLatest` waits for first emit
 - `pipe(source, ...transformers)` — transforms/combines streams
@@ -54,6 +55,7 @@ Key urx concepts:
 ### React binding
 
 `systemToComponent` (in `src/react-urx/index.tsx`) wraps a urx system into a React component:
+
 - Exposes `useEmitterValue(key)` — subscribes to a stateful stream, triggers re-render on change
 - Exposes `usePublisher(key)` — returns a stable callback to publish to a stream
 - Uses `useIsomorphicLayoutEffect` for subscriptions (SSR-safe)
@@ -63,20 +65,21 @@ Key urx concepts:
 
 Each system owns a slice of state:
 
-| System | Owns |
-|--------|------|
-| `domIOSystem` | viewportHeight, scrollTop, scrollHeight, deviation, layout flags |
-| `sizeRangeSystem` | visible item range from viewport + scroll + overscan |
-| `sizeSystem` | item sizes (measured via ResizeObserver per item) |
-| `listStateSystem` | computed list of rendered item descriptors |
-| `groupedListSystem` | group headers, current sticky group |
-| `scrollToIndexSystem` | imperative scroll-to-index |
-| `followOutputSystem` | auto-scroll to bottom |
-| `initialItemCountSystem` | render N items before viewport size is known |
+| System                   | Owns                                                             |
+| ------------------------ | ---------------------------------------------------------------- |
+| `domIOSystem`            | viewportHeight, scrollTop, scrollHeight, deviation, layout flags |
+| `sizeRangeSystem`        | visible item range from viewport + scroll + overscan             |
+| `sizeSystem`             | item sizes (measured via ResizeObserver per item)                |
+| `listStateSystem`        | computed list of rendered item descriptors                       |
+| `groupedListSystem`      | group headers, current sticky group                              |
+| `scrollToIndexSystem`    | imperative scroll-to-index                                       |
+| `followOutputSystem`     | auto-scroll to bottom                                            |
+| `initialItemCountSystem` | render N items before viewport size is known                     |
 
 ### React components (Virtuoso.tsx, TableVirtuoso.tsx, VirtuosoGrid.tsx)
 
 Thin wrappers that:
+
 1. Render the urx `Component` (provider)
 2. Render inner structural components (`Viewport`, `Scroller`, `ItemList`, etc.)
 3. Wire DOM events (scroll, resize) back to urx streams via hooks
@@ -88,6 +91,7 @@ Thin wrappers that:
 These are meaningful commits in `upstream/main` that aren't in the fork. The fork may want to cherry-pick bug fixes in particular.
 
 **Bug fixes:**
+
 - `5871779a7` Fix `useSyncExternalStore` detection for React 19+ (important for React 19 compat)
 - `1fca093bc` Fix horizontal RTL list positioning
 - `fa9dd3194` Fix window-scroll SSR viewport layout
@@ -95,15 +99,18 @@ These are meaningful commits in `upstream/main` that aren't in the fork. The for
 - `907b9372f` Fix bogus context attribute
 
 **New props / features:**
+
 - `e53f5402d` `minOverscanItemCount` — minimum items to render beyond visible range
 - `8940cae80` `heightEstimates` — provide initial height hints per item to avoid layout thrash
 - `34646ce28` `fixedGroupHeight` — fixed-height group headers (perf)
 - `b2bcc426b` + `34097bec6` `useEngineRef` / remote hooks — cross-tree engine state access
 
 **Performance:**
+
 - `1ec910ebc` gurx perf improvements (skip empty publishes, memoize snapshots, pre-compute node arrays, dirty-state overlay instead of full clone)
 
 **Tooling (breaking if merged wholesale):**
+
 - ESLint → oxlint, Prettier → oxfmt
 - Package manager: npm → pnpm with catalogs
 - Vite 8 / rolldown, tsgo for type-checking
@@ -139,6 +146,7 @@ Accepts `boolean[]` — one entry per group. When `false` for a group, that grou
 Performance hack for viewport-resize jitter. When `true`, the reported `viewportHeight` never decreases — it's the maximum height seen so far, rounded up to the nearest 100px. Prevents rapid mount/unmount cycles when the viewport shrinks slightly (e.g. virtual keyboard appearing/disappearing, browser chrome resize).
 
 Known limitations (see inline TODO comments):
+
 - May cause `scrollToIndex` to compute incorrect offsets since it uses viewport dimensions
 - May interact badly with small-viewport edge cases
 
@@ -157,6 +165,7 @@ Known limitations (see inline TODO comments):
 **Status**: Confirmed architectural limitation.
 
 **Root cause chain**:
+
 1. `rawViewportHeight` and `viewportHeight` are plain `stream<number>()` — NO initial value
 2. `sizeRangeSystem.visibleRange` uses `combineLatest(scrollTop, viewportHeight, ...)` — won't emit until `viewportHeight` has a value
 3. First render: no items rendered (list state is empty)
@@ -187,6 +196,7 @@ Known limitations (see inline TODO comments):
 ## Docs directory
 
 See `docs/` (if created) for deep-dives:
+
 - `docs/urx-primer.md` — stream system explained
 - `docs/rendering-lifecycle.md` — first-frame issue and viewport measurement
 - `docs/fork-changes.md` — all fork-specific additions documented

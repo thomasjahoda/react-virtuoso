@@ -9,9 +9,10 @@ React Virtuoso does not render list items on the very first browser paint. Users
 ### 1. Viewport height starts unknown
 
 In `src/domIOSystem.ts`:
+
 ```ts
-const rawViewportHeight = u.stream<number>()   // plain stream — no initial value
-const viewportHeight = u.stream<number>()       // derived, also no initial value
+const rawViewportHeight = u.stream<number>() // plain stream — no initial value
+const viewportHeight = u.stream<number>() // derived, also no initial value
 ```
 
 Neither has an initial value. The urx `stream<T>()` type (unlike `statefulStream(initial)`) emits nothing until explicitly published to.
@@ -19,6 +20,7 @@ Neither has an initial value. The urx `stream<T>()` type (unlike `statefulStream
 ### 2. visibleRange won't compute without viewportHeight
 
 In `src/sizeRangeSystem.ts`, the visible range is computed via:
+
 ```ts
 u.combineLatest(scrollTop, viewportHeight, headerHeight, listBoundary, overscan, ...)
 ```
@@ -28,12 +30,13 @@ u.combineLatest(scrollTop, viewportHeight, headerHeight, listBoundary, overscan,
 ### 3. viewportHeight is populated by ResizeObserver — async
 
 In `src/hooks/useSize.ts`, the Viewport element is watched by a `ResizeObserver`:
+
 ```ts
 const observer = new ResizeObserver((entries) => {
   const code = () => {
     const element = entries[0].target as HTMLElement
     if (element.offsetParent !== null) {
-      callback(element)          // → rawViewportHeight(height) → viewportHeight
+      callback(element) // → rawViewportHeight(height) → viewportHeight
     }
   }
   skipAnimationFrame ? code() : requestAnimationFrame(code)
@@ -47,6 +50,7 @@ The observer is attached via a callback ref (fires during React's commit phase).
 `skipAnimationFrameInResizeObserver` defaults to `false`, so the callback is wrapped in `requestAnimationFrame(code)`. This defers the viewport-height publish to the NEXT frame.
 
 Full default timeline:
+
 ```
 Frame 1 (React commit):
   → DOM mounted
@@ -89,6 +93,7 @@ Not a fix for the first frame, but reduces visible jank for subsequent renders.
 ## Proper fix direction (not yet implemented)
 
 The same pattern used for scroll events in `src/hooks/useScrollTop.ts`:
+
 ```ts
 ReactDOM.flushSync(call)
 ```
@@ -96,6 +101,7 @@ ReactDOM.flushSync(call)
 If the ResizeObserver callback (or a `useLayoutEffect` that reads the element) calls `flushSync` when publishing `rawViewportHeight`, React is forced to render synchronously. Since ResizeObserver fires before paint, this would populate items before the first browser paint.
 
 Rough implementation sketch for `src/hooks/useSize.ts`:
+
 ```ts
 import ReactDOM from 'react-dom'
 
@@ -114,6 +120,7 @@ const observer = new ResizeObserver((entries) => {
 **Trade-off**: `flushSync` forces synchronous (blocking) rendering. For scroll events (frequent), this is already what the library does. For resize events (rare), the cost is acceptable. But it must be conditional to avoid double-sync in SSR or strict mode.
 
 Alternatively: read the element height synchronously in a `useLayoutEffect` immediately after mount:
+
 ```ts
 // In useSizeWithElRef
 React.useLayoutEffect(() => {

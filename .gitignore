@@ -18,3 +18,7 @@ apps/virtuoso.dev/docs/virtuoso-masonry-api/*
 .claude/settings.local.json
 plans
 prompts
+
+/apps/virtuoso.dev/.docusaurus
+/apps/virtuoso.dev/docs/virtuoso-api/
+/apps/virtuoso.dev/docs/virtuoso-message-list-api/

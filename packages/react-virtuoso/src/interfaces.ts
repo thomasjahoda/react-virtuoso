@@ -27,7 +27,7 @@ export interface CalculateViewLocationParams {
 /**
  * @group Common
  */
-export interface ContextProp<Context> {
+export interface ContextProp<Context = unknown> {
   /** The context value passed from the parent component */
   context: Context
 }
@@ -108,7 +108,7 @@ export interface Components<Data = unknown, Context = unknown> {
  * @see {@link VirtuosoProps.computeItemKey} for usage in Virtuoso
  * @group Common
  */
-export type ComputeItemKey<Data, Context> = (index: number, item: Data, context: Context) => React.Key
+export type ComputeItemKey<Data, Context = unknown> = (index: number, item: Data, context: Context) => React.Key
 
 /**
  * Passed to the Components.FillerRow custom component
@@ -248,7 +248,7 @@ export interface GridComponents<Context = any> {
  * @see {@link VirtuosoGridProps.computeItemKey} for usage
  * @group VirtuosoGrid
  */
-export type GridComputeItemKey<Data, Context> = (index: number, item: Data, context: Context) => React.Key
+export type GridComputeItemKey<Data, Context = unknown> = (index: number, item: Data, context: Context) => React.Key
 
 /**
  * @group VirtuosoGrid
@@ -282,7 +282,7 @@ export interface GridItem<Data> {
  * @see {@link VirtuosoGridProps.itemContent} for usage
  * @group VirtuosoGrid
  */
-export type GridItemContent<Data, Context> = (index: number, data: Data, context: Context) => React.ReactNode
+export type GridItemContent<Data, Context = unknown> = (index: number, data: Data, context: Context) => React.ReactNode
 
 /**
  * Passed to the GridComponents.Item custom component
@@ -336,7 +336,7 @@ export interface GridScrollSeekPlaceholderProps {
  * @see {@link GroupedVirtuosoProps.groupContent} for usage
  * @group GroupedVirtuoso
  */
-export type GroupContent<Context> = (index: number, context: Context) => React.ReactNode
+export type GroupContent<Context = unknown> = (index: number, context: Context) => React.ReactNode
 
 /**
  * @group GroupedVirtuoso
@@ -385,7 +385,7 @@ export interface GroupItem<Data> extends Item<Data> {
  * @see {@link ItemContent} for non-grouped list variant
  * @group GroupedVirtuoso
  */
-export type GroupItemContent<Data, Context> = (index: number, groupIndex: number, data: Data, context: Context) => React.ReactNode
+export type GroupItemContent<Data, Context = unknown> = (index: number, groupIndex: number, data: Data, context: Context) => React.ReactNode
 
 /**
  * Passed to the Components.Group custom component
@@ -438,7 +438,7 @@ export interface Item<Data> {
  * @see {@link GroupItemContent} for grouped list variant
  * @group Virtuoso
  */
-export type ItemContent<Data, Context> = (index: number, data: Data, context: Context) => React.ReactNode
+export type ItemContent<Data, Context = unknown> = (index: number, data: Data, context: Context) => React.ReactNode
 
 /**
  * Passed to the Components.Item custom component

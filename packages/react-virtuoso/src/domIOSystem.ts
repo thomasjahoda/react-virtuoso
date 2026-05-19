@@ -29,6 +29,7 @@ export const domIOSystem = u.system(
       u.pipe(
         u.combineLatest(keepMaximumViewportHeight, rawViewportHeight),
         u.map(([keepMaximumViewportHeight, rawViewportHeight]): number => {
+          console.debug('[virtuoso domIO] rawViewportHeight', rawViewportHeight, { keepMaximumViewportHeight })
           if (!keepMaximumViewportHeight) {
             return rawViewportHeight
           }

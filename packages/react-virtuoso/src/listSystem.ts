@@ -98,7 +98,10 @@ export const listSystem = u.system(
     u.connect(
       u.pipe(
         featureGroup1.windowViewportRect,
-        u.map((value) => value.visibleHeight)
+        u.map((value) => {
+          console.debug('[virtuoso listSystem] windowViewportRect → viewportHeight', value.visibleHeight, value)
+          return value.visibleHeight
+        })
       ),
       domIO.viewportHeight
     )

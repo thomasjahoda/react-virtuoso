@@ -11,6 +11,10 @@ export type IndexLocation = IndexLocationWithAlign | number
 const SUPPORTS_SCROLL_TO_OPTIONS = typeof document !== 'undefined' && 'scrollBehavior' in document.documentElement.style
 
 export function normalizeIndexLocation(location: IndexLocation) {
+  if (location == null) {
+    console.warn('[virtuoso] scrollToIndex called with null/undefined location — ignoring')
+    return null
+  }
   const result: IndexLocationWithAlign = typeof location === 'number' ? { index: location } : location
 
   if (!result.align) {
@@ -80,6 +84,9 @@ export const scrollToIndexSystem = u.system(
             fixedFooterHeight,
           ]) => {
             const normalLocation = normalizeIndexLocation(location)
+            if (normalLocation === null) {
+              return null
+            }
             const { align, behavior, offset } = normalLocation
             const lastIndex = totalCount - 1
 
@@ -102,11 +109,13 @@ export const scrollToIndexSystem = u.system(
             }
 
             const retry = (listChanged: boolean) => {
+              console.debug('[virtuoso scrollToIndex] retry', { listChanged, location })
               cleanup()
               if (listChanged) {
                 log('retrying to scroll to', { location }, LogLevel.DEBUG)
                 u.publish(scrollToIndex, location)
               } else {
+                console.debug('[virtuoso scrollToIndex] publishing scrollTargetReached')
                 u.publish(scrollTargetReached, true)
                 log('list did not change, scroll successful', {}, LogLevel.DEBUG)
               }
@@ -130,11 +139,13 @@ export const scrollToIndexSystem = u.system(
             // if the scroll jump is too small, the list won't get rerendered.
             // clean this listener
             cleartTimeoutRef = setTimeout(() => {
+              console.debug('[virtuoso scrollToIndex] 1200ms cleanup timeout fired (scrollTargetReached was NOT published)')
               cleanup()
             }, 1200)
 
             u.publish(scrollingInProgress, true)
             log('scrolling from index to', { behavior, index, top }, LogLevel.DEBUG)
+            console.debug('[virtuoso scrollToIndex] scroll dispatched', { behavior, index, top, totalCount, viewportHeight })
             return { behavior, top }
           }
         )

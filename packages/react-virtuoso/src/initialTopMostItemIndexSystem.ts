@@ -24,7 +24,11 @@ export const initialTopMostItemIndexSystem = u.system(
       u.pipe(
         didMount,
         u.withLatestFrom(initialTopMostItemIndex),
-        u.filter(([_, location]) => location !== 0),
+        u.filter(([_, location]) => {
+          const nonZero = location != null && location !== 0
+          console.debug('[virtuoso initialTopMostItemIndex] didMount filter', { location, nonZero })
+          return nonZero
+        }),
         u.mapTo(false)
       ),
       scrolledToInitialItem
@@ -33,8 +37,11 @@ export const initialTopMostItemIndexSystem = u.system(
       u.pipe(
         didMount,
         u.withLatestFrom(initialTopMostItemIndex),
-        u.filter(([_, location]) => location !== 0),
-        u.mapTo(false)
+        u.filter(([_, location]) => location != null && location !== 0),
+        u.map(() => {
+          console.debug('[virtuoso initialTopMostItemIndex] initialItemFinalLocationReached → false')
+          return false as const
+        })
       ),
       initialItemFinalLocationReached
     )
@@ -44,17 +51,31 @@ export const initialTopMostItemIndexSystem = u.system(
         u.combineLatest(listRefresh, didMount),
         u.withLatestFrom(scrolledToInitialItem, sizes, defaultItemSize, initialItemFinalLocationReached),
         u.filter(([[, didMount], scrolledToInitialItem, { sizeTree }, defaultItemSize, scrollScheduled]) => {
-          return didMount && (!empty(sizeTree) || u.isDefined(defaultItemSize)) && !scrolledToInitialItem && !scrollScheduled
+          const sizeTreeEmpty = empty(sizeTree)
+          const hasDefaultSize = u.isDefined(defaultItemSize)
+          const pass = didMount && (!sizeTreeEmpty || hasDefaultSize) && !scrolledToInitialItem && !scrollScheduled
+          console.debug('[virtuoso initialTopMostItemIndex] scroll-trigger filter', {
+            didMount,
+            sizeTreeEmpty,
+            hasDefaultSize,
+            scrolledToInitialItem,
+            scrollScheduled,
+            pass,
+          })
+          return pass
         }),
         u.withLatestFrom(initialTopMostItemIndex)
       ),
       ([, initialTopMostItemIndex]) => {
+        console.debug('[virtuoso initialTopMostItemIndex] initiating scroll to', initialTopMostItemIndex)
         u.handleNext(scrollTargetReached, () => {
+          console.debug('[virtuoso initialTopMostItemIndex] scrollTargetReached → initialItemFinalLocationReached = true')
           u.publish(initialItemFinalLocationReached, true)
         })
 
         skipFrames(4, () => {
           u.handleNext(scrollTop, () => {
+            console.debug('[virtuoso initialTopMostItemIndex] scrollTop changed → scrolledToInitialItem = true')
             u.publish(scrolledToInitialItem, true)
           })
           u.publish(scrollToIndex, initialTopMostItemIndex)

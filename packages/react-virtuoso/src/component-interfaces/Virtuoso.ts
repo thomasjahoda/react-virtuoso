@@ -69,7 +69,7 @@ export interface GroupedVirtuosoHandle {
  * @see {@link GroupedVirtuosoHandle} for imperative methods
  * @group GroupedVirtuoso
  */
-export interface GroupedVirtuosoProps<Data, Context> extends Omit<VirtuosoProps<Data, Context>, 'itemContent' | 'totalCount'> {
+export interface GroupedVirtuosoProps<Data, Context = unknown> extends Omit<VirtuosoProps<Data, Context>, 'itemContent' | 'totalCount'> {
   /**
    * Use when implementing inverse infinite scrolling, decrease the value this property
    * in combination with a change in `groupCounts` to prepend groups items to the top of the list.
@@ -155,7 +155,7 @@ export interface VirtuosoHandle {
  * @see {@link VirtuosoHandle} for imperative methods
  * @group Virtuoso
  */
-export interface VirtuosoProps<Data, Context> extends ListRootProps {
+export interface VirtuosoProps<Data, Context = unknown> extends ListRootProps {
   /**
    * Setting `alignToBottom` to `true` aligns the items to the bottom of the list if the list is shorter than the viewport.
    * Use `followOutput` property to keep the list aligned when new items are appended.

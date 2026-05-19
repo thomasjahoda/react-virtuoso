@@ -1,62 +1,65 @@
-name: Deploy virtuoso.dev to GitHub pages
+name: Deploy Docs Site
 
 on:
   push:
-    branches: ["master"]
+    branches: ['main']
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
-  group: "pages"
+  group: 'pages'
   cancel-in-progress: false
 
 jobs:
-  # Build job
   build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-      - name: Detect package manager
-        id: detect-package-manager
-        run: |
-          echo "manager=npm" >> $GITHUB_OUTPUT
-          echo "command=ci" >> $GITHUB_OUTPUT
-          echo "runner=npx --no-install" >> $GITHUB_OUTPUT
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: 10.24.0
+
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
-          node-version: "22"
-          cache: npm
+          node-version: 22.x
+          cache: pnpm
+
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
         with:
-          static_site_generator: docusaurus
+          static_site_generator: next
+
       - name: Install dependencies
-        run: npm install
-      - name: Build the site with docusaurus
-        run: npm run build-virtuoso.dev
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all packages and the site
+        run: pnpm run build
         env:
           PADDLE_ENVIRONMENT: ${{ vars.PADDLE_ENVIRONMENT }}
           PADDLE_TOKEN: ${{ vars.PADDLE_TOKEN }}
           PADDLE_STANDARD_PRICE_ID: ${{ vars.PADDLE_STANDARD_PRICE_ID }}
           PADDLE_PRO_PRICE_ID: ${{ vars.PADDLE_PRO_PRICE_ID }}
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./apps/virtuoso.dev/build
 
-  # Deployment job
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
+        with:
+          path: ./apps/virtuoso.dev/dist
+
   deploy:
+    name: Deploy
+    permissions:
+      pages: write # Publish the uploaded artifact to GitHub Pages.
+      id-token: write # Authenticate the Pages deployment through GitHub's OIDC token.
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -65,4 +68,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

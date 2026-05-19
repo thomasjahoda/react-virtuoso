@@ -1,6 +1,8 @@
 import * as React from 'react'
 
-import { CalculateViewLocation, Virtuoso, VirtuosoHandle } from '../src'
+import { Virtuoso } from '../src'
+
+import type { CalculateViewLocation, VirtuosoHandle } from '../src'
 
 const calculateViewLocation: CalculateViewLocation = ({ itemBottom, itemTop, locationParams, viewportBottom, viewportTop }) => {
   const instantScrollThreshold = 500
@@ -40,7 +42,7 @@ export function Example() {
     }
   }, [])
 
-  const intervalRef = React.useRef<ReturnType<typeof setInterval>>()
+  const intervalRef = React.useRef<ReturnType<typeof setInterval>>(null)
 
   React.useEffect(() => {
     intervalRef.current = setInterval(() => {

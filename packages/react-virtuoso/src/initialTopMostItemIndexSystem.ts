@@ -1,11 +1,12 @@
 import { empty } from './AATree'
 import { domIOSystem } from './domIOSystem'
-import { FlatIndexLocationWithAlign } from './interfaces'
 import { propsReadySystem } from './propsReadySystem'
 import { scrollToIndexSystem } from './scrollToIndexSystem'
 import { sizeSystem } from './sizeSystem'
 import * as u from './urx'
 import { skipFrames } from './utils/skipFrames'
+
+import type { FlatIndexLocationWithAlign } from './interfaces'
 
 export function getInitialTopMostItemIndexNumber(location: FlatIndexLocationWithAlign | number, totalCount: number): number {
   const lastIndex = totalCount - 1
@@ -23,7 +24,7 @@ export const initialTopMostItemIndexSystem = u.system(
       u.pipe(
         didMount,
         u.withLatestFrom(initialTopMostItemIndex),
-        u.filter(([_, location]) => !!location),
+        u.filter(([_, location]) => location !== 0),
         u.mapTo(false)
       ),
       scrolledToInitialItem
@@ -32,7 +33,7 @@ export const initialTopMostItemIndexSystem = u.system(
       u.pipe(
         didMount,
         u.withLatestFrom(initialTopMostItemIndex),
-        u.filter(([_, location]) => !!location),
+        u.filter(([_, location]) => location !== 0),
         u.mapTo(false)
       ),
       initialItemFinalLocationReached

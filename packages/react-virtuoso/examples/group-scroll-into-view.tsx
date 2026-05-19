@@ -1,6 +1,8 @@
 import * as React from 'react'
 
-import { GroupedVirtuoso, GroupedVirtuosoHandle } from '../src'
+import { GroupedVirtuoso } from '../src'
+
+import type { GroupedVirtuosoHandle } from '../src'
 
 export function Example() {
   const virutoso = React.useRef<GroupedVirtuosoHandle>(null)

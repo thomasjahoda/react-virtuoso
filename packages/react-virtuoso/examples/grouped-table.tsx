@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+
 import { GroupedTableVirtuoso } from '../src/'
 
 export function Example() {
@@ -32,7 +33,7 @@ export function Example() {
         </td>
       )}
       itemContent={(index, groupIndex) => {
-        const user = users[index]
+        const user = users[index]!
         return (
           <>
             <td style={{ width: 150 }}>

@@ -16,7 +16,7 @@ function note(index: number) {
 }
 
 export const getNote = (index: number) => {
-  if (!notes[index]) {
+  if (notes[index] === undefined) {
     notes[index] = note(index)
   }
 

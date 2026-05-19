@@ -1,23 +1,23 @@
 import * as React from 'react'
 
-import { ListRange, VirtuosoGrid } from '../src'
+import { VirtuosoGrid } from '../src'
+
+import type { ListRange } from '../src'
 
 export function Example() {
   const { data, rangeRendered } = useDataPager(1000)
   return (
-    <>
-      <VirtuosoGrid
-        data={data}
-        initialTopMostItemIndex={300}
-        itemContent={(index, dataItem) => (
-          <div>
-            Item {index} - data: {JSON.stringify(dataItem)}
-          </div>
-        )}
-        rangeChanged={rangeRendered}
-        style={{ height: 900, width: 1200 }}
-      />
-    </>
+    <VirtuosoGrid
+      data={data}
+      initialTopMostItemIndex={300}
+      itemContent={(index, dataItem) => (
+        <div>
+          Item {index} - data: {JSON.stringify(dataItem)}
+        </div>
+      )}
+      rangeChanged={rangeRendered}
+      style={{ height: 900, width: 1200 }}
+    />
   )
 }
 

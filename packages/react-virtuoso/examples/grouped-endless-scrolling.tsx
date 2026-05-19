@@ -1,9 +1,12 @@
-import { faker } from '@faker-js/faker'
-import { groupBy } from 'lodash'
 import * as React from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { Components, GroupedVirtuoso } from '../src'
+import { faker } from '@faker-js/faker'
+import { groupBy } from 'lodash'
+
+import { GroupedVirtuoso } from '../src'
+
+import type { Components } from '../src'
 
 const getUser = () => {
   const firstName = faker.name.firstName()
@@ -110,11 +113,11 @@ export function Example() {
       itemContent={(index) => (
         <div>
           <div>
-            <strong>{users[index].name}</strong>
+            <strong>{users[index]!.name}</strong>
           </div>
           <div>
-            {users[index].description}
-            {users[index].description}
+            {users[index]!.description}
+            {users[index]!.description}
           </div>
         </div>
       )}

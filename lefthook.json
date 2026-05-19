@@ -1,0 +1,31 @@
+{
+  "pre-commit": {
+    "parallel": true,
+    "commands": {
+      "markdown-lint": {
+        "glob": "**/*.md",
+        "run": "pnpm exec markdownlint --ignore-path .markdownlintignore {staged_files}",
+        "stage_fixed": true,
+        "skip": ["merge", "rebase"]
+      },
+      "oxlint": {
+        "glob": "*.{js,mjs,cjs,ts,jsx,tsx,astro}",
+        "run": "pnpm lint",
+        "skip": ["merge", "rebase"]
+      },
+      "format-oxfmt": {
+        "glob": "*.{js,mjs,cjs,ts,jsx,tsx}",
+        "run": "pnpm exec oxfmt --write {staged_files}",
+        "stage_fixed": true,
+        "skip": ["merge", "rebase"]
+      },
+      "format-astro": {
+        "root": "apps/virtuoso.dev/",
+        "glob": "apps/virtuoso.dev/**/*.astro",
+        "run": "pnpm exec prettier --write {staged_files}",
+        "stage_fixed": true,
+        "skip": ["merge", "rebase"]
+      }
+    }
+  }
+}

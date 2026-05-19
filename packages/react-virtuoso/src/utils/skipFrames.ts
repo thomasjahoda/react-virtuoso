@@ -1,5 +1,5 @@
 export function skipFrames(frameCount: number, callback: () => void) {
-  if (frameCount == 0) {
+  if (frameCount === 0) {
     callback()
   } else {
     requestAnimationFrame(() => {

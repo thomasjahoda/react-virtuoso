@@ -1,8 +1,11 @@
-//@ts-nocheck
-import styled from '@emotion/styled'
 import * as React from 'react'
 
-import { GridComponents, VirtuosoGrid } from '../src'
+//@ts-nocheck
+import styled from '@emotion/styled'
+
+import { VirtuosoGrid } from '../src'
+
+import type { GridComponents } from '../src'
 
 const ItemContainer = styled.div`
   box-sizing: border-box;
@@ -37,10 +40,10 @@ const ItemWrapper = styled.div`
 const ListContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
-` as GridComponents['List']
+` as NonNullable<GridComponents['List']>
 
 export function Example() {
-  const [customScrollParent, setCustomScrollParent] = React.useState(null)
+  const [customScrollParent, setCustomScrollParent] = React.useState<HTMLElement | null>(null)
   const [height, setHeight] = React.useState('25vh')
   const toggleHeight = () => {
     setHeight(height === '50vh' ? '25vh' : '50vh')
@@ -80,7 +83,7 @@ export function Example() {
                 </ItemContainer>
               ),
             }}
-            customScrollParent={customScrollParent}
+            {...(customScrollParent ? { customScrollParent } : {})}
             itemContent={(index) => <ItemWrapper>Item {index}</ItemWrapper>}
             totalCount={1000}
           />

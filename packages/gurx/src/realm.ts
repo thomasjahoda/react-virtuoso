@@ -1,8 +1,8 @@
-import type { O } from './operators'
-
 import { RefCount } from './RefCount'
 import { SetMap } from './SetMap'
 import { noop, tap } from './utils'
+
+import type { O } from './operators'
 
 const CELL_TYPE = 'cell'
 const SIGNAL_TYPE = 'signal'
@@ -21,7 +21,7 @@ export type NodeRef<T = unknown> = symbol & { valType: T }
  */
 export type Subscription<T> = (value: T) => unknown
 
-export type PipeRef<I = unknown, O = unknown> = symbol & { inputType: I; outputType: O }
+export type PipeRef<I = unknown, R = unknown> = symbol & { inputType: I; outputType: R }
 
 export type Inp<T = unknown> = NodeRef<T> | PipeRef<T>
 export type Out<T = unknown> = NodeRef<T> | PipeRef<unknown, T>
@@ -37,6 +37,7 @@ interface RealmProjection<T extends unknown[] = unknown[]> {
   map: ProjectionFunc<T>
   pulls: Set<symbol>
   sink: symbol
+  sourceAndPullNodes: symbol[]
   sources: Set<symbol>
 }
 
@@ -78,7 +79,7 @@ export type Distinct<T> = boolean | Comparator<T>
  */
 export type NodeInit<T> = (r: Realm, node$: NodeRef<T>) => void
 
-export type PipeInit<I, O> = (r: Realm, inputRef$: NodeRef<I>, outputRef$: NodeRef<O>) => void
+export type PipeInit<I, R> = (r: Realm, inputRef$: NodeRef<I>, outputRef$: NodeRef<R>) => void
 
 interface CellDefinition<T> {
   distinct: Distinct<T>
@@ -93,17 +94,26 @@ interface SignalDefinition<T> {
   type: typeof SIGNAL_TYPE
 }
 
-interface PipeDefinition<I, O> {
+interface PipeDefinition<I, R> {
   distinct: Distinct<I>
-  init: PipeInit<I, O>
-  initial: O
+  init: PipeInit<I, R>
+  initial: R
   type: typeof PIPE_TYPE
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const nodeDefs$$ = new Map<symbol, CellDefinition<any> | PipeDefinition<any, any> | SignalDefinition<any>>()
 
 let currentRealm$$: Realm | undefined = undefined
+
+function runInRealmContext<T>(realm: Realm, fn: () => T): T {
+  const prevRealm = currentRealm$$
+  currentRealm$$ = realm
+  try {
+    return fn()
+  } finally {
+    currentRealm$$ = prevRealm
+  }
+}
 
 /**
  * The realm is the actual "engine" that orchestrates any cells and signals that it touches. The realm also stores the state and the dependencies of the nodes that are referred through it.
@@ -117,6 +127,7 @@ export class Realm {
   private readonly pipeMap = new Map<symbol, symbol>()
   private readonly singletonSubscriptions = new Map<symbol, Subscription<unknown>>()
   private readonly state = new Map<symbol, unknown>()
+  private readonly combinedCells: { cell: Out; sources: Out[] }[] = []
   private readonly subscriptions = new SetMap<Subscription<unknown>>()
 
   /**
@@ -142,9 +153,11 @@ export class Realm {
       this.state.set(node, value)
     }
     if (distinct !== false && !this.distinctNodes.has(node)) {
+      // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
       this.distinctNodes.set(node, distinct === true ? defaultComparator : (distinct as Comparator<unknown>))
     }
 
+    // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
     return node as NodeRef<T>
   }
 
@@ -548,6 +561,14 @@ export class Realm {
     ]
   ): Out<[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21]> // prettier-ignore
   combineCells(...sources: Out[]): Out {
+    const existing = this.combinedCells.find((entry) => {
+      return sources.length === entry.sources.length && sources.every((s, i) => s === entry.sources[i])
+    })
+
+    if (existing) {
+      return existing.cell
+    }
+
     return tap(
       this.cellInstance(
         sources.map((source) => this.getValue(source)),
@@ -563,6 +584,7 @@ export class Realm {
           sink,
           sources,
         })
+        this.combinedCells.push({ cell: sink, sources })
       }
     )
   }
@@ -597,19 +619,23 @@ export class Realm {
       map,
       pulls: new Set(pulls),
       sink: this.register(sink),
+      sourceAndPullNodes: [...sources, ...pulls],
       sources: new Set(sources),
     }
 
     for (const node of [...sources, ...pulls]) {
       this.register(node)
+      // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
       this.graph.getOrCreate(node).add(dependency as RealmProjection)
     }
 
     this.executionMaps.clear()
+
+    return dependency
   }
   /**
    * Gets the current value of a node. The node must be stateful.
-   * @remark if possible, use {@link withLatestFrom} or {@link combine}, as getValue will not create a dependency to the passed node,
+   * @remarks If possible, use {@link withLatestFrom} or {@link combine}, as getValue will not create a dependency to the passed node,
    * which means that if you call it within a computational cycle, you may not get the correct value.
    * @param node - the node instance.
    * @example
@@ -625,6 +651,7 @@ export class Realm {
    */
   getValue<T>(node: Out<T>): T {
     this.register(node)
+    // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
     return this.state.get(node) as T
   }
   /**
@@ -662,12 +689,7 @@ export class Realm {
     return nodes.map((node) => this.getValue(node))
   }
   inContext<T>(fn: () => T): T {
-    const prevRealm = currentRealm$$
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    currentRealm$$ = this
-    const result = fn()
-    currentRealm$$ = prevRealm
-    return result
+    return runInRealmContext(this, fn)
   }
 
   /**
@@ -736,10 +758,11 @@ export class Realm {
    * const r = new Realm()
    * r.pub(foo$, 'bar')
    */
-  // eslint-disable-next-line @typescript-eslint/unified-signatures
+  // oxlint-disable-next-line typescript/unified-signatures - this is intentional
   pub<T>(node: Inp<T>, value: T): void
   pub<T>(node: Inp<T>, value?: T) {
-    this.pubIn({ [node]: value })
+    const id = this.pipeMap.get(node) ?? node
+    this.execute([id], { [id]: value })
   }
   /**
    * Publishes into multiple nodes simultaneously, triggering a single re-computation cycle.
@@ -755,30 +778,46 @@ export class Realm {
    * ```
    */
   pubIn(values: Record<symbol, unknown>) {
-    // if we have pipe nodes, we need to use their input symbols for publishing instead
-    const ids = (Reflect.ownKeys(values) as symbol[]).map((id) => {
-      return this.pipeMap.get(id) ?? id
-    })
-
-    const mappedValues = Reflect.ownKeys(values).reduce<Record<symbol, unknown>>((acc, key) => {
-      const symbolKey = key as symbol
-      const value = values[symbolKey]
-      const pipeMappedKey: symbol = this.pipeMap.get(symbolKey) ?? symbolKey
-      acc[pipeMappedKey] = value
-      return acc
-    }, {})
-
+    const keys = Object.getOwnPropertySymbols(values)
+    if (this.pipeMap.size === 0) {
+      this.execute(keys, values)
+      return
+    }
+    const ids = new Array<symbol>(keys.length)
+    let remapped = false
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i]!
+      const id = this.pipeMap.get(key) ?? key
+      ids[i] = id
+      if (id !== key) {
+        remapped = true
+      }
+    }
+    if (!remapped) {
+      this.execute(ids, values)
+      return
+    }
+    const mapped: Record<symbol, unknown> = {}
+    for (let i = 0; i < keys.length; i++) {
+      mapped[ids[i]!] = values[keys[i]!]
+    }
+    this.execute(ids, mapped)
+  }
+  private execute(ids: symbol[], rootValues: Record<symbol, unknown>) {
     const map = this.getExecutionMap(ids)
     const refCount = map.refCount.clone()
-    const participatingNodeKeys = map.participatingNodes.slice()
-    const transientState = new Map<symbol, unknown>(this.state)
+    const participatingNodeKeys = map.participatingNodes
+    const dirtyState = new Map<symbol, unknown>()
+    const skipSet = new Set<symbol>()
+
+    const readState = (nodeId: symbol) => (dirtyState.has(nodeId) ? dirtyState.get(nodeId) : this.state.get(nodeId))
 
     const nodeWillNotEmit = (key: symbol) => {
       this.graph.use(key, (projections) => {
         for (const { sink, sources } of projections) {
           if (sources.has(key)) {
             refCount.decrement(sink, () => {
-              participatingNodeKeys.splice(participatingNodeKeys.indexOf(sink), 1)
+              skipSet.add(sink)
               nodeWillNotEmit(sink)
             })
           }
@@ -786,53 +825,50 @@ export class Realm {
       })
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    while (true) {
-      const nextId = participatingNodeKeys.shift()
-      if (nextId === undefined) {
-        break
-      }
-      const id = nextId
-      let resolved = false
-      const done = (value: unknown) => {
-        const dnRef = this.distinctNodes.get(id)
-        if (dnRef?.(transientState.get(id), value)) {
-          resolved = false
-          return
+    this.inContext(() => {
+      for (const nextId of participatingNodeKeys) {
+        if (skipSet.has(nextId)) {
+          continue
         }
-        resolved = true
-        transientState.set(id, value)
-        if (this.state.has(id)) {
-          this.state.set(id, value)
-        }
-      }
-      if (Object.hasOwn(mappedValues, id)) {
-        done(mappedValues[id])
-      } else {
-        map.projections.use(id, (nodeProjections) => {
-          for (const projection of nodeProjections) {
-            const args = [...Array.from(projection.sources), ...Array.from(projection.pulls)].map((id) => transientState.get(id))
-            projection.map(done)(...args)
+        let resolved = false
+        const done = (value: unknown) => {
+          const dnRef = this.distinctNodes.get(nextId)
+          if (dnRef?.(readState(nextId), value) === true) {
+            resolved = false
+            return
           }
-        })
-      }
+          resolved = true
+          dirtyState.set(nextId, value)
+          if (this.state.has(nextId)) {
+            this.state.set(nextId, value)
+          }
+        }
+        if (Object.hasOwn(rootValues, nextId)) {
+          done(rootValues[nextId])
+        } else {
+          map.projections.use(nextId, (nodeProjections) => {
+            for (const projection of nodeProjections) {
+              const args = projection.sourceAndPullNodes.map(readState)
+              projection.map(done)(...args)
+            }
+          })
+        }
 
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      if (resolved) {
-        const value = transientState.get(id)
-        this.inContext(() => {
-          this.subscriptions.use(id, (nodeSubscriptions) => {
+        if (resolved) {
+          const value = dirtyState.get(nextId)
+          this.subscriptions.use(nextId, (nodeSubscriptions) => {
             for (const subscription of nodeSubscriptions) {
               subscription(value)
             }
           })
-        })
-        this.singletonSubscriptions.get(id)?.(value)
-      } else {
-        nodeWillNotEmit(id)
+          this.singletonSubscriptions.get(nextId)?.(value)
+        } else {
+          nodeWillNotEmit(nextId)
+        }
       }
-    }
+    })
   }
+
   /**
    * Explicitly includes the specified cell/signal/pipe reference in the realm.
    * Most of the time you don't need to do that, since any interaction with the node through a realm will register it.
@@ -848,16 +884,16 @@ export class Realm {
     if (!this.definitionRegistry.has(node$)) {
       this.definitionRegistry.add(node$)
       if (definition.type === CELL_TYPE) {
-        return tap(this.cellInstance(definition.initial, definition.distinct, node$), (node$) => {
+        return tap(this.cellInstance(definition.initial, definition.distinct, node$), (ref) => {
           this.inContext(() => {
-            definition.init(this, node$)
+            definition.init(this, ref)
           })
         })
       }
       if (definition.type === SIGNAL_TYPE) {
-        return tap(this.signalInstance(definition.distinct, node$), (node$) => {
+        return tap(this.signalInstance(definition.distinct, node$), (ref) => {
           this.inContext(() => {
-            definition.init(this, node$)
+            definition.init(this, ref)
           })
         })
       }
@@ -888,8 +924,10 @@ export class Realm {
    */
   signalInstance<T>(distinct: Distinct<T> = true, node = Symbol()): NodeRef<T> {
     if (distinct !== false) {
+      // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
       this.distinctNodes.set(node, distinct === true ? defaultComparator : (distinct as Comparator<unknown>))
     }
+    // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
     return node as NodeRef<T>
   }
   /**
@@ -914,6 +952,7 @@ export class Realm {
     if (subscription === undefined) {
       this.singletonSubscriptions.delete(node)
     } else {
+      // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
       this.singletonSubscriptions.set(node, subscription as Subscription<unknown>)
     }
     return () => this.singletonSubscriptions.delete(node)
@@ -937,7 +976,9 @@ export class Realm {
   sub<T>(node: Out<T>, subscription: Subscription<T>): UnsubscribeHandle {
     this.register(node)
     const nodeSubscriptions = this.subscriptions.getOrCreate(node)
+    // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
     nodeSubscriptions.add(subscription as Subscription<unknown>)
+    // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
     return () => nodeSubscriptions.delete(subscription as Subscription<unknown>)
   }
 
@@ -980,12 +1021,10 @@ export class Realm {
     nodes: [Out<T1>, Out<T2>, Out<T3>, Out<T4>, Out<T5>, Out<T6>, Out<T7>, Out<T8>],
     subscription: Subscription<[T1, T2, T3, T4, T5, T6, T7, T8]>
   ): UnsubscribeHandle // prettier-ignore
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   subMultiple(nodes: Out[], subscription: Subscription<any>): UnsubscribeHandle
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   subMultiple(nodes: Out[], subscription: Subscription<any>): UnsubscribeHandle {
     const sink = this.signalInstance()
-    this.connect({
+    const projection = this.connect({
       map:
         (done) =>
         (...args) => {
@@ -994,7 +1033,17 @@ export class Realm {
       sink,
       sources: nodes,
     })
-    return this.sub(sink, subscription)
+    const unsubscribe = this.sub(sink, subscription)
+    return () => {
+      unsubscribe()
+      for (const node of nodes) {
+        this.graph.get(node)?.delete(projection)
+      }
+      this.graph.delete(sink)
+      this.subscriptions.delete(sink)
+      this.state.delete(sink)
+      this.executionMaps.clear()
+    }
   }
   /**
    * Works as a reverse pipe.
@@ -1016,17 +1065,17 @@ export class Realm {
    * ```
    */
   transformer<In>(...o: []): (s: Inp<In>) => Inp<In> // prettier-ignore
-  transformer<In, Out>(...o: [O<In, Out>]): (s: Inp<Out>) => Inp<In> // prettier-ignore
-  transformer<In, Out, O1>(...o: [O<In, O1>, O<O1, Out>]): (s: Inp<Out>) => Inp<In> // prettier-ignore
-  transformer<In, Out, O1, O2>(...o: [O<In, O1>, O<O1, O2>, O<O2, Out>]): (s: Inp<Out>) => Inp<In> // prettier-ignore
-  transformer<In, Out, O1, O2, O3>(...o: [O<In, O1>, O<O1, O2>, O<O2, O3>, O<O3, Out>]): (s: Inp<Out>) => Inp<In> // prettier-ignore
-  transformer<In, Out, O1, O2, O3, O4>(...o: [O<In, O1>, O<O1, O2>, O<O2, O3>, O<O3, O4>, O<O4, Out>]): (s: Inp<Out>) => Inp<In> // prettier-ignore
-  transformer<In, Out, O1, O2, O3, O4, O5>(
-    ...o: [O<In, O1>, O<O1, O2>, O<O2, O3>, O<O3, O4>, O<O4, O5>, O<O5, Out>]
-  ): (s: Inp<Out>) => Inp<In> // prettier-ignore
-  transformer<In, Out>(...operators: O<unknown, unknown>[]): (s: Inp<Out>) => Inp<In>
-  transformer<In, Out>(...operators: O<unknown, unknown>[]): (s: Inp<Out>) => Inp<In> {
-    return (sink: Inp<Out>) => {
+  transformer<In, Result>(...o: [O<In, Result>]): (s: Inp<Result>) => Inp<In> // prettier-ignore
+  transformer<In, Result, O1>(...o: [O<In, O1>, O<O1, Result>]): (s: Inp<Result>) => Inp<In> // prettier-ignore
+  transformer<In, Result, O1, O2>(...o: [O<In, O1>, O<O1, O2>, O<O2, Result>]): (s: Inp<Result>) => Inp<In> // prettier-ignore
+  transformer<In, Result, O1, O2, O3>(...o: [O<In, O1>, O<O1, O2>, O<O2, O3>, O<O3, Result>]): (s: Inp<Result>) => Inp<In> // prettier-ignore
+  transformer<In, Result, O1, O2, O3, O4>(...o: [O<In, O1>, O<O1, O2>, O<O2, O3>, O<O3, O4>, O<O4, Result>]): (s: Inp<Result>) => Inp<In> // prettier-ignore
+  transformer<In, Result, O1, O2, O3, O4, O5>(
+    ...o: [O<In, O1>, O<O1, O2>, O<O2, O3>, O<O3, O4>, O<O4, O5>, O<O5, Result>]
+  ): (s: Inp<Result>) => Inp<In> // prettier-ignore
+  transformer<In, Result>(...operators: O<unknown, unknown>[]): (s: Inp<Result>) => Inp<In>
+  transformer<In, Result>(...operators: O<unknown, unknown>[]): (s: Inp<Result>) => Inp<In> {
+    return (sink: Inp<Result>) => {
       return tap(this.signalInstance<In>(), (source) => {
         this.link(this.pipe(source, ...operators), sink)
         return source
@@ -1048,10 +1097,10 @@ export class Realm {
         return
       }
 
+      // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
       this.register(node as NodeRef)
 
       pendingPulls.use(node, (pulls) => {
-        // biome-ignore lint/style/noParameterAssign: this saves space
         insertIndex = Math.max(...Array.from(pulls).map((key) => participatingNodes.indexOf(key))) + 1
       })
 
@@ -1091,23 +1140,23 @@ export class Realm {
   private combineOperators<T>(...o: O<unknown, unknown>[]): (s: Out<T>) => NodeRef {
     return (source: Out) => {
       for (const op of o) {
-        // biome-ignore lint/style/noParameterAssign: this saves space
         source = op(source, this)
       }
+      // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
       return source as NodeRef
     }
   }
   private getExecutionMap(nodes: symbol[]) {
     let key: symbol | symbol[] = nodes
     if (nodes.length === 1) {
-      key = nodes[0]
+      key = nodes[0]!
       const existingMap = this.executionMaps.get(key)
       if (existingMap !== undefined) {
         return existingMap
       }
     } else {
-      for (const [key, existingMap] of this.executionMaps.entries()) {
-        if (Array.isArray(key) && key.length === nodes.length && key.every((id) => nodes.includes(id))) {
+      for (const [entryKey, existingMap] of this.executionMaps.entries()) {
+        if (Array.isArray(entryKey) && entryKey.length === nodes.length && entryKey.every((id) => nodes.includes(id))) {
           return existingMap
         }
       }
@@ -1138,19 +1187,21 @@ export class Realm {
  * @category Nodes
  */
 export function Cell<T>(value: T, init: (r: Realm) => void = noop, distinct: Distinct<T> = true): NodeRef<T> {
+  // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
   return tap(Symbol(), (id) => {
     nodeDefs$$.set(id, { distinct, init, initial: value, type: CELL_TYPE })
   }) as NodeRef<T>
 }
 
-export function Pipe<I, O>(
-  value: O,
-  init: (r: Realm, input$: Out<I>, output$: Out<O>) => void,
+export function Pipe<I, Result>(
+  value: Result,
+  init: (r: Realm, input$: Out<I>, output$: Out<Result>) => void,
   distinct: Distinct<I> = true
-): PipeRef<I, O> {
+): PipeRef<I, Result> {
+  // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
   return tap(Symbol(), (id) => {
     nodeDefs$$.set(id, { distinct, init, initial: value, type: PIPE_TYPE })
-  }) as PipeRef<I, O>
+  }) as PipeRef<I, Result>
 }
 
 /**
@@ -1172,6 +1223,7 @@ export function Pipe<I, O>(
  * @category Nodes
  */
 export function DerivedCell<T>(value: T, linkFn: (r: Realm, cell: NodeRef<T>) => NodeRef<T>, distinct: Distinct<T> = true): NodeRef<T> {
+  // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
   return tap(Symbol(), (id) => {
     nodeDefs$$.set(id, {
       distinct,
@@ -1200,6 +1252,7 @@ export function DerivedCell<T>(value: T, linkFn: (r: Realm, cell: NodeRef<T>) =>
  * @category Nodes
  */
 export function Signal<T>(init: NodeInit<T> = noop, distinct: Distinct<T> = false): NodeRef<T> {
+  // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
   return tap(Symbol(), (id) => {
     nodeDefs$$.set(id, { distinct, init, type: 'signal' })
   }) as NodeRef<T>
@@ -1218,9 +1271,10 @@ export function Signal<T>(init: NodeInit<T> = noop, distinct: Distinct<T> = fals
  * r.pub(foo$)
  * ```
  * @category Nodes
- * @remark An action is just a signal with `void` value. It can be used to trigger side effects.
+ * @remarks An action is just a signal with `void` value. It can be used to trigger side effects.
  */
 export function Action(init: NodeInit<void> = noop): NodeRef<void> {
+  // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
   return tap(Symbol(), (id) => {
     nodeDefs$$.set(id, { distinct: false, init, type: 'signal' })
   }) as NodeRef<void>

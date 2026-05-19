@@ -1,6 +1,8 @@
 import * as React from 'react'
 
-import { TableVirtuoso, TableVirtuosoHandle } from '../src/'
+import { TableVirtuoso } from '../src/'
+
+import type { TableVirtuosoHandle } from '../src/'
 
 export function Example() {
   const ref = React.useRef<TableVirtuosoHandle>(null)

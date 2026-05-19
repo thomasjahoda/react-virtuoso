@@ -1,6 +1,9 @@
-import { Virtuoso } from '../src'
-import { useState, useCallback, forwardRef, useRef, ReactNode } from 'react'
+import { useState, useCallback, forwardRef, useRef } from 'react'
+import type { ReactNode } from 'react'
+
 import { v4 as uuidv4 } from 'uuid'
+
+import { Virtuoso } from '../src'
 
 interface SteamItem {
   _id: string
@@ -22,8 +25,8 @@ const generateItems = () => {
   return items
 }
 
-const StreamCardsWrapper = forwardRef<HTMLDivElement>((props, ref) => {
-  return <div className="stream-cards-wrapper" ref={ref} {...props}></div>
+const StreamCardsWrapper = forwardRef<HTMLDivElement>(function StreamCardsWrapper(props, ref) {
+  return <div className="stream-cards-wrapper" ref={ref} {...props} />
 })
 
 const StreamCard = ({ children }: { children: ReactNode }) => {
@@ -57,7 +60,7 @@ export function Example() {
 
   const appendItem = useCallback(() => {
     setStreamItems((oldItems) => {
-      const newIndex = oldItems[0].index - 1
+      const newIndex = oldItems[0]!.index - 1
       const newItem: SteamItem = {
         _id: uuidv4(),
         label: `index ${newIndex}`,
@@ -79,7 +82,7 @@ export function Example() {
       <button onClick={appendItem}>Append Item</button>
       <div id="stream-item-listing" style={{ height: 500, overflow: 'auto' }} ref={listingRef}>
         <Virtuoso
-          customScrollParent={listingRef.current ?? undefined}
+          {...(listingRef.current ? { customScrollParent: listingRef.current } : {})}
           skipAnimationFrameInResizeObserver
           firstItemIndex={firstItemIndex}
           ref={virtuosoRef}

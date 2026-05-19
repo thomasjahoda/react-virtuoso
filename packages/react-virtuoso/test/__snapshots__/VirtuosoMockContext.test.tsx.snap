@@ -65,7 +65,7 @@ exports[`VirtuosoMockContext > Grid > correctly renders items with useWindowScro
     style="position: relative; height: 300px;"
   >
     <div
-      style="height: 100%; position: absolute; top: 0px; width: 100%;"
+      style="height: 100%; position: relative; top: 0px; width: 100%;"
     >
       <div
         class="virtuoso-grid-list"
@@ -168,7 +168,7 @@ exports[`VirtuosoMockContext > List > correctly renders items with useWindowScro
   >
     <div
       data-viewport-type="window"
-      style="height: 100%; position: absolute; top: 0px; width: 100%;"
+      style="height: 100%; position: relative; top: 0px; width: 100%;"
     >
       <div
         data-testid="virtuoso-item-list"
@@ -190,6 +190,58 @@ exports[`VirtuosoMockContext > List > correctly renders items with useWindowScro
         >
           Item 1
         </div>
+        <div
+          data-index="2"
+          data-item-index="2"
+          data-known-size="100"
+          style="overflow-anchor: none;"
+        >
+          Item 2
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`VirtuosoMockContext > List > offsets the window viewport by the sticky top items height 1`] = `
+<div>
+  <div
+    data-virtuoso-scroller="true"
+    style="position: relative; height: 800px;"
+  >
+    <div
+      style="position: -webkit-sticky; top: 0px; width: 100%; z-index: 5; margin-top: 0px;"
+    >
+      <div
+        data-testid="virtuoso-top-item-list"
+      >
+        <div
+          data-index="0"
+          data-item-index="0"
+          data-known-size="100"
+          style="overflow-anchor: none;"
+        >
+          Item 0
+        </div>
+        <div
+          data-index="1"
+          data-item-index="1"
+          data-known-size="100"
+          style="overflow-anchor: none;"
+        >
+          Item 1
+        </div>
+      </div>
+    </div>
+    <div
+      data-viewport-type="window"
+      style="height: 100%; position: relative; top: -200px; width: 100%;"
+    >
+      <div
+        data-testid="virtuoso-item-list"
+        style="box-sizing: border-box; margin-top: 0px; padding-bottom: 500px; padding-top: 200px;"
+      >
         <div
           data-index="2"
           data-item-index="2"
@@ -275,7 +327,7 @@ exports[`VirtuosoMockContext > Table > correctly renders items with useWindowScr
   >
     <div
       data-viewport-type="window"
-      style="height: 100%; position: absolute; top: 0px; width: 100%;"
+      style="height: 100%; position: relative; top: 0px; width: 100%;"
     >
       <table
         style="border-spacing: 0; overflow-anchor: none;"

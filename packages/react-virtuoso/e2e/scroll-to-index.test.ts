@@ -1,13 +1,13 @@
 import { expect, test } from '@playwright/test'
 
-//@ts-expect-error - type module and playwright
 import { navigateToExample } from './utils.ts'
 
 test.describe('scroll to index', () => {
   test.beforeEach(async ({ baseURL, page }) => {
     await navigateToExample(page, baseURL, 'scroll-to-index')
     await page.reload()
-    await page.waitForTimeout(100)
+    await page.waitForSelector('[data-testid=virtuoso-scroller]')
+    await page.waitForTimeout(500)
   })
 
   // the example below goes to 670, because the initial render
@@ -28,7 +28,7 @@ test.describe('scroll to index', () => {
   test('scrolls to the 30 item with 5 offset', async ({ page }) => {
     await page.click('#offset-30')
 
-    await page.waitForTimeout(100)
+    await page.waitForTimeout(200)
 
     const scrollTop = await page.evaluate(() => {
       return document.querySelector('[data-testid=virtuoso-scroller]')!.scrollTop
@@ -40,7 +40,7 @@ test.describe('scroll to index', () => {
   test('scrolls to the mid 50 item', async ({ page }) => {
     await page.click('#center-50')
 
-    await page.waitForTimeout(100)
+    await page.waitForTimeout(200)
 
     const scrollTop = await page.evaluate(() => {
       return document.querySelector('[data-testid=virtuoso-scroller]')!.scrollTop

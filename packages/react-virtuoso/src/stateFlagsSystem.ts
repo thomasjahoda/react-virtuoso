@@ -4,7 +4,7 @@ import { approximatelyEqual } from './utils/approximatelyEqual'
 
 export const UP = 'up'
 export const DOWN = 'down'
-export const NONE = 'none'
+const NONE = 'none'
 export interface AtBottomParams {
   offsetBottom: number
   scrollHeight: number
@@ -26,11 +26,6 @@ export type AtBottomState =
       scrollTopDelta: number
       state: AtBottomParams
     }
-
-export interface ListBottomInfo {
-  bottom: number
-  offsetBottom: number
-}
 
 export type NotAtBottomReason =
   | 'NOT_FULLY_SCROLLED_TO_LAST_ITEM_BOTTOM'
@@ -137,7 +132,7 @@ export const stateFlagsSystem = u.system(([{ footerHeight, headerHeight, scrollB
         } as AtBottomState
       }, INITIAL_BOTTOM_STATE),
       u.distinctUntilChanged((prev, next) => {
-        return prev && prev.atBottom === next.atBottom
+        return prev !== undefined && prev.atBottom === next.atBottom
       })
     )
   )
@@ -157,21 +152,19 @@ export const stateFlagsSystem = u.system(([{ footerHeight, headerHeight, scrollB
                 scrollHeight,
                 scrollTop,
               }
-            } else {
-              return {
-                changed: true,
-                jump: 0,
-                scrollHeight,
-                scrollTop,
-              }
             }
-          } else {
             return {
-              changed: false,
+              changed: true,
               jump: 0,
               scrollHeight,
               scrollTop,
             }
+          }
+          return {
+            changed: false,
+            jump: 0,
+            scrollHeight,
+            scrollTop,
           }
         },
         { changed: false, jump: 0, scrollHeight: 0, scrollTop: 0 }
@@ -238,8 +231,8 @@ export const stateFlagsSystem = u.system(([{ footerHeight, headerHeight, scrollB
       scrollTop,
       u.throttleTime(100),
       u.withLatestFrom(isScrolling),
-      u.filter(([_, isScrolling]) => !!isScrolling),
-      u.scan(([_, prev], [next]) => [prev, next], [0, 0]),
+      u.filter(([_, isScrolling]) => isScrolling),
+      u.scan(([_, prev], [next]) => [prev, next] as [number, number], [0, 0] as [number, number]),
       u.map(([prev, next]) => next - prev)
     ),
     scrollVelocity

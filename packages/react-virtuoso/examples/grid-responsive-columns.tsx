@@ -1,6 +1,8 @@
 import styled from '@emotion/styled'
 
-import { GridComponents, VirtuosoGrid } from '../src'
+import { VirtuosoGrid } from '../src'
+
+import type { GridComponents } from '../src'
 
 const ItemContainer = styled.div`
   width: 100px;
@@ -25,7 +27,7 @@ const ListContainer = styled.div`
   grid-template-rows: repeat(auto-fill, 100px);
   justify-content: space-evenly;
   margin: 10px;
-` as GridComponents['List']
+` as NonNullable<GridComponents['List']>
 
 export function Example() {
   return (

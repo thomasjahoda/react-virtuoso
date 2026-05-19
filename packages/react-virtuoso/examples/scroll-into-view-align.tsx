@@ -1,6 +1,8 @@
 import * as React from 'react'
 
-import { Virtuoso, VirtuosoHandle } from '../src'
+import { Virtuoso } from '../src'
+
+import type { VirtuosoHandle } from '../src'
 
 export function Example() {
   const ref = React.useRef<VirtuosoHandle>(null)

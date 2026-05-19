@@ -1,7 +1,8 @@
 import { domIOSystem } from './domIOSystem'
-import { ScrollContainerState, WindowViewportInfo } from './interfaces'
 import * as u from './urx'
 import { ceilToStep } from './utils/correctItemSize'
+
+import type { ScrollContainerState, WindowViewportInfo } from './interfaces'
 
 export const windowScrollerSystem = u.system(([{ scrollContainerState, scrollTo, keepMaximumViewportHeight }]) => {
   const windowScrollContainerState = u.stream<ScrollContainerState>()
@@ -36,6 +37,7 @@ export const windowScrollerSystem = u.system(([{ scrollContainerState, scrollTo,
             maximumWindowViewportRect.visibleHeight < rawWindowViewportRect.visibleHeight
           ) {
             maximumWindowViewportRect = {
+              listHeight: rawWindowViewportRect.listHeight,
               offsetTop: rawWindowViewportRect.offsetTop,
               visibleWidth: rawWindowViewportRect.visibleWidth,
               // TODO thomas: [fork-cleanup] add property to do this ceilToStep thing
@@ -43,7 +45,7 @@ export const windowScrollerSystem = u.system(([{ scrollContainerState, scrollTo,
             }
           }
         }
-        return maximumWindowViewportRect
+        return maximumWindowViewportRect!
       }),
       u.distinctUntilChanged()
     ),
@@ -53,9 +55,9 @@ export const windowScrollerSystem = u.system(([{ scrollContainerState, scrollTo,
   u.connect(
     u.pipe(
       u.combineLatest(windowScrollContainerState, windowViewportRect),
-      u.map(([{ scrollHeight, scrollTop: windowScrollTop, viewportHeight }, { offsetTop }]) => {
+      u.map(([{ scrollTop: windowScrollTop, viewportHeight }, { offsetTop, listHeight }]) => {
         return {
-          scrollHeight,
+          scrollHeight: listHeight,
           scrollTop: Math.max(0, windowScrollTop - offsetTop),
           viewportHeight,
         }

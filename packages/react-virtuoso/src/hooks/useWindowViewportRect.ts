@@ -1,7 +1,8 @@
 import React from 'react'
 
-import { WindowViewportInfo } from '../interfaces'
 import { useSizeWithElRef } from './useSize'
+
+import type { WindowViewportInfo } from '../interfaces'
 
 export default function useWindowViewportRectRef(
   callback: (info: WindowViewportInfo) => void,
@@ -32,6 +33,7 @@ export default function useWindowViewportRectRef(
       }
 
       viewportInfo.current = {
+        listHeight: rect.height,
         offsetTop,
         visibleHeight,
         visibleWidth,
@@ -39,7 +41,7 @@ export default function useWindowViewportRectRef(
 
       callback(viewportInfo.current)
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line exhaustive-deps
     [callback, customScrollParent]
   )
 
@@ -60,15 +62,15 @@ export default function useWindowViewportRectRef(
         customScrollParent.removeEventListener('scroll', scrollAndResizeEventHandler)
         observer.unobserve(customScrollParent)
       }
-    } else {
-      const theElementWindow = ref.current?.ownerDocument.defaultView
+    }
 
-      theElementWindow?.addEventListener('scroll', scrollAndResizeEventHandler)
-      theElementWindow?.addEventListener('resize', scrollAndResizeEventHandler)
-      return () => {
-        theElementWindow?.removeEventListener('scroll', scrollAndResizeEventHandler)
-        theElementWindow?.removeEventListener('resize', scrollAndResizeEventHandler)
-      }
+    const theElementWindow = ref.current?.ownerDocument.defaultView
+
+    theElementWindow?.addEventListener('scroll', scrollAndResizeEventHandler)
+    theElementWindow?.addEventListener('resize', scrollAndResizeEventHandler)
+    return () => {
+      theElementWindow?.removeEventListener('scroll', scrollAndResizeEventHandler)
+      theElementWindow?.removeEventListener('resize', scrollAndResizeEventHandler)
     }
   }, [scrollAndResizeEventHandler, customScrollParent, ref])
 

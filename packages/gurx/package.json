@@ -1,52 +1,62 @@
 {
   "name": "@virtuoso.dev/gurx",
+  "version": "1.2.3",
   "private": false,
-  "sideEffects": false,
-  "type": "module",
-  "version": "1.1.0",
-  "module": "dist/index.js",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc && vite build",
-    "test": "vitest",
-    "ci-lint": "eslint",
-    "lint": "eslint",
-    "typecheck": "tsc --noEmit"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/petyosi/react-virtuoso.git"
-  },
-  "license": "MIT",
-  "peerDependencies": {
-    "react": ">= 16 || >= 17 || >= 18 || >= 19",
-    "react-dom": ">= 16 || >= 17 || >= 18 || >= 19"
-  },
-  "devDependencies": {
-    "@microsoft/api-extractor": "^7.48.0",
-    "@types/node": "^22.10.1",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "@virtuoso.dev/tooling": "*",
-    "@vitejs/plugin-react-swc": "^3.7.2",
-    "@vitest/browser": "3.1.1",
-    "eslint": "^9.24.0",
-    "playwright": "^1.49.0",
-    "prettier": "^3.5.3",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "typescript": "~5.7.2",
-    "vite": "^6.2.6",
-    "vite-plugin-dts": "~4.4.0",
-    "vitest": "3.1.1",
-    "vitest-browser-react": "^0.1.1"
+    "url": "git+https://github.com/petyosi/react-virtuoso.git",
+    "directory": "packages/gurx"
   },
   "files": [
     "dist",
     "CHANGELOG.md"
-  ]
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc && vite build",
+    "test": "vitest run --browser.headless",
+    "test:browser": "vitest run --project=browser",
+    "test:node": "vitest run --project=node",
+    "test:watch": "vitest",
+    "lint": "oxlint --type-aware --type-check",
+    "typecheck": "tsgo --noEmit",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check"
+  },
+  "devDependencies": {
+    "@microsoft/api-extractor": "^7.55.1",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "@vitest/browser": "catalog:",
+    "@vitest/browser-playwright": "catalog:",
+    "playwright": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plugin-dts": "catalog:",
+    "vitest": "catalog:",
+    "vitest-browser-react": "^2.0.2"
+  },
+  "peerDependencies": {
+    "react": ">= 16 || >= 17 || >= 18 || >= 19",
+    "react-dom": ">= 16 || >= 17 || >= 18 || >= 19"
+  }
 }

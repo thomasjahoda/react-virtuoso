@@ -1,0 +1,73 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react", "import"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "pedantic": "error",
+    "style": "error",
+    "perf": "error"
+  },
+  "rules": {
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "typescript/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+    "react/prop-types": "off",
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-props-no-spreading": "off",
+    "react/jsx-boolean-value": "off",
+    "react/jsx-max-depth": "off",
+
+    "arrow-body-style": "off",
+    "capitalized-comments": "off",
+    "func-names": "off",
+    "func-style": "off",
+    "id-length": "off",
+    "init-declarations": "off",
+    "max-dependencies": "off",
+    "max-lines": "off",
+    "max-lines-per-function": "off",
+    "max-params": "off",
+    "max-statements": "off",
+    "new-cap": "off",
+    "no-continue": "off",
+    "no-inline-comments": "off",
+    "no-magic-numbers": "off",
+    "no-negated-condition": "off",
+    "no-nested-ternary": "off",
+    "no-ternary": "off",
+    "prefer-destructuring": "off",
+    "radix": "off",
+    "sort-imports": "off",
+    "sort-keys": "off",
+    "symbol-description": "off",
+
+    "typescript/restrict-template-expressions": ["error", { "allowNumber": true }],
+    "typescript/ban-types": "error",
+
+    "import/no-named-export": "off",
+    "import/group-exports": "off",
+    "import/exports-last": "off",
+    "import/prefer-default-export": "off",
+    "import/no-namespace": "off",
+    "import/default": "off",
+    "max-depth": "off",
+    "no-duplicate-imports": ["error", { "allowSeparateTypeImports": true }],
+    "no-inner-declarations": "off"
+  },
+  "overrides": [
+    {
+      "files": ["**/vite.config.*", "**/playwright.config.*"],
+      "rules": {
+        "import/no-nodejs-modules": "off"
+      }
+    }
+  ],
+  "ignorePatterns": ["node_modules/", "dist/", "test-results"]
+}

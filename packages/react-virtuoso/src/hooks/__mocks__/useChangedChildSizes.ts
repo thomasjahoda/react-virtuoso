@@ -1,4 +1,4 @@
-import { SizeRange } from '../../'
+import type { SizeRange } from '../../'
 
 type CallbackRefParam = HTMLElement | null
 

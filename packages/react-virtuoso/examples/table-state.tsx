@@ -1,6 +1,8 @@
 import * as React from 'react'
 
-import { StateSnapshot, TableVirtuoso, TableVirtuosoHandle } from '../src/'
+import { TableVirtuoso } from '../src/'
+
+import type { StateSnapshot, TableVirtuosoHandle } from '../src/'
 
 export function Example() {
   const ref = React.useRef<TableVirtuosoHandle>(null)
@@ -46,7 +48,7 @@ export function Example() {
         )}
         key={key}
         ref={ref}
-        restoreStateFrom={state.current}
+        {...(state.current ? { restoreStateFrom: state.current } : {})}
         style={{ height: 400, marginTop: 8 }}
         totalCount={250}
       />

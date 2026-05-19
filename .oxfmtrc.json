@@ -1,0 +1,19 @@
+{
+  "printWidth": 140,
+  "semi": false,
+  "singleQuote": true,
+  "trailingComma": "es5",
+  "ignorePatterns": ["**/*.astro"],
+  "sortImports": {
+    "customGroups": [
+      {
+        "groupName": "react",
+        "elementNamePattern": ["react", "react-**"]
+      }
+    ],
+    "groups": ["react", "builtin", "external", "internal", ["parent", "sibling", "index"], "type"],
+    "newlinesBetween": true,
+    "ignoreCase": true,
+    "order": "asc"
+  }
+}

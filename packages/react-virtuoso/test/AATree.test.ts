@@ -2,7 +2,8 @@
 import { describe, expect, it } from 'vitest'
 
 import * as AA from '../src/AATree'
-import { AANode } from '../src/AATree'
+
+import type { AANode } from '../src/AATree'
 
 function partition(array: number[], predicate: (input: number) => boolean) {
   const result: [number[], number[]] = [[], []]
@@ -27,8 +28,8 @@ function shuffle(array: number[]) {
   while (++index < array.length) {
     const rand = index + Math.floor(Math.random() * (lastIndex - index + 1))
     const value = result[rand]
-    result[rand] = result[index]
-    result[index] = value
+    result[rand] = result[index]!
+    result[index] = value!
   }
   return result
 }
@@ -44,13 +45,14 @@ function isInvariant(node: AANode<any>): boolean {
 
   if (level !== left.lvl + 1) {
     return false
-  } else if (level !== right.lvl && level !== right.lvl + 1) {
-    return false
-  } else if (!AA.empty(right) && level <= right.r.lvl) {
-    return false
-  } else {
-    return isInvariant(left) && isInvariant(right)
   }
+  if (level !== right.lvl && level !== right.lvl + 1) {
+    return false
+  }
+  if (!AA.empty(right) && level <= right.r.lvl) {
+    return false
+  }
+  return isInvariant(left) && isInvariant(right)
 }
 
 function keyMatchesValues(numbers: number[], tree: AANode<number>): void {

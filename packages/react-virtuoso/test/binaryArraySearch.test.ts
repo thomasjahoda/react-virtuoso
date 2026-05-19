@@ -33,7 +33,7 @@ describe('find closest smaller number in array', () => {
         const tests = Array.from({ length: count }, (_, i) => [i, Math.floor(i / step) * step])
         const data = Array.from({ length: count }, (_, index) => index * step)
         tests.forEach(([value, result]) => {
-          expect(findClosestSmallerOrEqual(data, value, exampleComparator)).toBe(result)
+          expect(findClosestSmallerOrEqual(data, value!, exampleComparator)).toBe(result)
         })
       }
     }

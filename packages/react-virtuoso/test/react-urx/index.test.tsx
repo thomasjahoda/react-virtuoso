@@ -1,10 +1,11 @@
 import * as React from 'react'
-import { act } from 'react'
-import { createRef, FC } from 'react'
-import { createRoot, Root } from 'react-dom/client'
+import { act, createRef } from 'react'
+import type { FC } from 'react'
+
+import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { RefHandle, systemToComponent } from '../../src/react-urx'
+import { systemToComponent } from '../../src/react-urx'
 import {
   combineLatest,
   connect,
@@ -18,6 +19,9 @@ import {
   streamFromEmitter,
   system,
 } from '../../src/urx'
+
+import type { RefHandle } from '../../src/react-urx'
+import type { Root } from 'react-dom/client'
 
 //@ts-expect-error why :(
 global.IS_REACT_ACT_ENVIRONMENT = true
@@ -266,7 +270,7 @@ describe('components from system', () => {
 
     act(() => {
       expect(() => {
-        render(<Comp prop={undefined} />)
+        render(<Comp />)
       }).not.toThrow()
     })
   })

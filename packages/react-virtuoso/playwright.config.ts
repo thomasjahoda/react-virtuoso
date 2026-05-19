@@ -1,4 +1,4 @@
-import { PlaywrightTestConfig } from '@playwright/test'
+import type { PlaywrightTestConfig } from '@playwright/test'
 
 const config: PlaywrightTestConfig = {
   testDir: './e2e',
@@ -6,11 +6,7 @@ const config: PlaywrightTestConfig = {
     command: 'npm run ladle',
     port: 61000,
     timeout: 120 * 1000,
-    reuseExistingServer: !process.env.CI,
-  },
-
-  use: {
-    launchOptions: {},
+    reuseExistingServer: process.env.CI === undefined || process.env.CI === '',
   },
 }
 export default config

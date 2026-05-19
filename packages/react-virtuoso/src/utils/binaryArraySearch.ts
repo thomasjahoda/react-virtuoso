@@ -1,7 +1,7 @@
 export type Comparator<T> = (item: T, value: number) => -1 | 0 | 1
 
 export function findClosestSmallerOrEqual<T>(items: T[], value: number, comparator: Comparator<T>): T {
-  return items[findIndexOfClosestSmallerOrEqual(items, value, comparator)]
+  return items[findIndexOfClosestSmallerOrEqual(items, value, comparator)]!
 }
 
 export function findIndexOfClosestSmallerOrEqual<T>(items: T[], value: number, comparator: Comparator<T>, start = 0): number {
@@ -9,7 +9,7 @@ export function findIndexOfClosestSmallerOrEqual<T>(items: T[], value: number, c
 
   while (start <= end) {
     const index = Math.floor((start + end) / 2)
-    const item = items[index]
+    const item = items[index]!
     const match = comparator(item, value)
     if (match === 0) {
       return index

@@ -1,16 +1,17 @@
 import { expect, test } from '@playwright/test'
 
-//@ts-expect-error - type module and playwright
 import { navigateToExample } from './utils.ts'
 
 test.describe('list with hundred items', () => {
   test.beforeEach(async ({ baseURL, page }) => {
     await navigateToExample(page, baseURL, 'data')
     await page.waitForSelector('[data-testid=virtuoso-scroller]')
-    await page.waitForTimeout(100)
+    await page.waitForSelector('[data-testid=virtuoso-item-list]')
+    await page.waitForTimeout(400)
   })
 
   test('renders 10 items', async ({ page }) => {
+    await page.waitForTimeout(400)
     const itemCount = await page.evaluate(() => {
       const listContainer = document.querySelector('[data-testid=virtuoso-item-list]')!
       return listContainer.childElementCount

@@ -17,7 +17,7 @@ export function useSizeWithElRef(callback: (e: HTMLElement) => void, enabled: bo
     if (typeof ResizeObserver !== 'undefined') {
       return new ResizeObserver((entries: ResizeObserverEntry[]) => {
         const code = () => {
-          const element = entries[0].target as HTMLElement
+          const element = entries[0]!.target as HTMLElement
           if (element.offsetParent !== null) {
             callback(element)
           }

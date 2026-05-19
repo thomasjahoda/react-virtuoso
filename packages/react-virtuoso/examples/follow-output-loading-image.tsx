@@ -1,7 +1,9 @@
 import * as React from 'react'
 import { useCallback, useState } from 'react'
 
-import { Virtuoso, VirtuosoHandle } from '../src'
+import { Virtuoso } from '../src'
+
+import type { VirtuosoHandle } from '../src'
 
 const Image = ({ index }: { index: number }) => {
   const ref = React.useRef<HTMLDivElement>(null)

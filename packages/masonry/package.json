@@ -1,82 +1,87 @@
 {
   "name": "@virtuoso.dev/masonry",
+  "version": "1.4.3",
   "private": false,
   "description": "Virtualized React component for rendering masonry layouts",
   "keywords": [
-    "react",
-    "virtual",
-    "masonry",
     "endless scrolling",
-    "list",
-    "scrolling",
     "infinite",
+    "list",
+    "masonry",
+    "react",
+    "scrolling",
+    "virtual",
     "virtualized"
   ],
-  "author": "The Virtuoso team <support@virtuoso.dev>",
-  "license": "MIT",
   "homepage": "https://virtuoso.dev/virtuoso-masonry/",
   "bugs": {
     "email": "support@virtuoso.dev"
   },
-  "version": "1.3.4",
+  "license": "MIT",
+  "author": "The Virtuoso team <support@virtuoso.dev>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/petyosi/react-virtuoso.git",
+    "directory": "packages/masonry"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
   "type": "module",
-  "module": "dist/index.js",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "sideEffects": false,
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "scripts": {
     "build": "tsc && vite build",
     "dev": "vite build",
     "ladle": "ladle serve",
-    "test": "vitest",
-    "e2e": "echo 'No e2e tests'",
-    "typecheck": "tsc --noEmit",
-    "docs:build": "npx typedoc --plugin typedoc-plugin-no-inherit --watch --excludeInternal --excludePrivate --out docs --name 'Virtuoso Masonry' src/index.ts",
-    "docs:serve": "npx serve docs",
-    "lint": "eslint",
+    "test": "vitest run --browser.headless",
+    "test:browser": "vitest run --project=browser",
+    "test:node": "vitest run --project=\"node env\"",
+    "test:watch": "vitest",
+    "lint": "oxlint --type-aware --type-check",
+    "typecheck": "tsgo --noEmit",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "knip": "knip"
   },
   "dependencies": {
-    "@virtuoso.dev/gurx": "*"
+    "@virtuoso.dev/gurx": "workspace:*"
+  },
+  "devDependencies": {
+    "@ladle/react": "^5.0.1",
+    "@microsoft/api-extractor": "^7.55.1",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "@vitest/browser": "catalog:",
+    "@vitest/browser-playwright": "catalog:",
+    "jsdom": "^27.4.0",
+    "knip": "^5.38.3",
+    "node-html-parser": "^6.1.13",
+    "playwright": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plugin-dts": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "react": ">= 18 || >= 19",
     "react-dom": ">= 18 || >= 19"
-  },
-  "devDependencies": {
-    "@virtuoso.dev/tooling": "*",
-    "@ladle/react": "^5.0.1",
-    "@types/node": "^22.10.1",
-    "@types/react": "^18.2.64",
-    "@types/react-dom": "^18.2.21",
-    "@vitejs/plugin-react-swc": "^3.7.2",
-    "@vitest/browser": "^3.0.4",
-    "eslint": "^9.19.0",
-    "globals": "^15.14.0",
-    "jsdom": "^26.0.0",
-    "knip": "^5.38.3",
-    "node-html-parser": "^6.1.13",
-    "playwright": "^1.33.0",
-    "prettier": "^3.4.2",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "resize-observer-polyfill": "^1.5.1",
-    "semantic-release": "^24.2.0",
-    "typedoc": "^0.27.2",
-    "typedoc-plugin-no-inherit": "^1.4.0",
-    "typescript": "^5.7.3",
-    "vite": "^6.0.11",
-    "vite-plugin-dts": "^4.5.0",
-    "vitest": "^3.0.4"
-  },
-  "engines": {
-    "node": "22"
-  },
-  "files": [
-    "dist",
-    "CHANGELOG.md"
-  ]
+  }
 }

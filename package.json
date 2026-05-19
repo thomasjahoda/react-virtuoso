@@ -3,24 +3,55 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "ci": "turbo ci-setup && turbo react-virtuoso#build && turbo typecheck lint test e2e",
-    "build": "turbo build",
-    "build-virtuoso.dev": "turbo build --filter @virtuoso.dev/virtuoso.dev",
-    "release": "turbo build && npx @changesets/cli publish",
-    "changeset-add": "npx @changesets/cli add",
-    "dev:docs": "turbo run dev @virtuoso.dev/virtuoso.dev#dev",
-    "dev": "turbo watch dev"
+    "ci": "pnpm ci-setup && pnpm build && pnpm typecheck && pnpm lint && pnpm lint:md && pnpm test && pnpm e2e",
+    "ci-setup": "pnpm run --if-present --parallel --no-bail ci-setup",
+    "typecheck": "pnpm run --if-present --parallel typecheck",
+    "lint": "pnpm run --if-present --parallel --no-bail lint",
+    "lint:md": "markdownlint '**/*.md' --ignore-path .markdownlintignore",
+    "lint:md:fix": "markdownlint '**/*.md' --ignore-path .markdownlintignore --fix",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "test": "pnpm run --if-present --parallel --no-bail test",
+    "e2e": "pnpm run --if-present --parallel --no-bail e2e",
+    "build": "pnpm --if-present --recursive run build",
+    "release": "pnpm build && pnpm exec changeset publish",
+    "changeset-add": "pnpm changeset add",
+    "dev:docs": "pnpm --filter @virtuoso.dev/virtuoso.dev run dev",
+    "build-virtuoso.dev": "pnpm --filter @virtuoso.dev/virtuoso.dev run build",
+    "prepare": "lefthook install",
+    "knip": "knip"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.27.12",
-    "turbo": "^2.4.4"
+    "@changesets/changelog-github": "^0.5.2",
+    "@changesets/cli": "^2.29.8",
+    "@types/node": "catalog:",
+    "@typescript/native-preview": "7.0.0-dev.20260301.1",
+    "knip": "^5.70.2",
+    "lefthook": "^2.0.8",
+    "markdownlint-cli": "^0.46.0",
+    "oxfmt": "^0.35.0",
+    "oxlint": "^1.50.0",
+    "oxlint-tsgolint": "^0.15.0",
+    "typescript": "catalog:"
   },
-  "engines": {
-    "node": "22"
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": ">=10.24",
+      "onFail": "error"
+    },
+    "runtime": {
+      "name": "node",
+      "version": ">=22.0.0",
+      "onFail": "error"
+    }
   },
-  "packageManager": "npm@10.8.2",
-  "workspaces": [
-    "packages/*",
-    "apps/*"
-  ]
+  "packageManager": "pnpm@10.24.0",
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "react-inspector>react": "19"
+      }
+    }
+  }
 }

@@ -1,39 +1,6 @@
 {
-  "compilerOptions": {
-    "declaration": true,
-    "declarationMap": true,
-    "noEmit": true,
-    "emitDeclarationOnly": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "importHelpers": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "lib": ["dom", "esnext"],
-    "module": "esnext",
-    "moduleResolution": "node",
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "outDir": "dist",
-    "rootDir": "./",
-    "skipLibCheck": true,
-    "sourceMap": true,
-    "strict": true,
-    "target": "ESNext",
-    "allowJs": true
-  },
-  "include": [
-    "examples",
-    "test",
-    "e2e2",
-    "e2e",
-    "src",
-    "vite.config.ts",
-    "./eslint.config.mjs",
-    "playwright.config.ts",
-    ".ladle/config.mjs"
-  ],
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "../../tsconfig.base.json",
+  "include": ["src", "test", "e2e", "e2e2", "examples", "vite.config.ts", "playwright.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

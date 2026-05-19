@@ -1,6 +1,8 @@
 import * as React from 'react'
 
-import { Components, Virtuoso } from '../src'
+import { Virtuoso } from '../src'
+
+import type { Components } from '../src'
 
 const components: Components<null, { key: string }> = {
   Header: ({ context }) => <div>Header - {JSON.stringify(context)}</div>,

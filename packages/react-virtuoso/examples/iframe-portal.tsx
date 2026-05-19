@@ -1,6 +1,7 @@
-import { createPortal } from 'react-dom'
-import { TableVirtuoso, Virtuoso } from '../src'
 import * as React from 'react'
+import { createPortal } from 'react-dom'
+
+import { TableVirtuoso, Virtuoso } from '../src'
 
 export function Example() {
   return (

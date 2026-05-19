@@ -159,8 +159,8 @@ describe('grid system', () => {
     })
     publish(scrollTop, 20)
     const items = getValue(gridState).items
-    expect(items[0].index).toBe(30)
-    expect(items[items.length - 1].index).toBe(38)
+    expect(items[0]!.index).toBe(30)
+    expect(items[items.length - 1]!.index).toBe(38)
   })
 
   it('does not overflow past the first item', () => {
@@ -181,8 +181,8 @@ describe('grid system', () => {
     publish(scrollTop, 8)
     publish(scrollTop, 2)
     const items = getValue(gridState).items
-    expect(items[0].index).toBe(0)
-    expect(items[items.length - 1].index).toBe(11)
+    expect(items[0]!.index).toBe(0)
+    expect(items[items.length - 1]!.index).toBe(11)
   })
 
   it('correctly calculates items per row', () => {

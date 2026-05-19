@@ -1,9 +1,10 @@
 import { useState } from 'react'
 
-import { IndexLocationWithAlign, Virtuoso } from '../src'
-import { IndexLocation } from '../src/scrollToIndexSystem'
+import { Virtuoso } from '../src'
 
-// @ts-expect-error I know, I know, I know
+import type { IndexLocationWithAlign } from '../src'
+import type { IndexLocation } from '../src/scrollToIndexSystem'
+
 globalThis.VIRTUOSO_LOG_LEVEL = 0
 
 const itemContent = (index: number) => <div style={{ background: 'white', height: index % 2 ? 30 : 20 }}>Item {index}</div>

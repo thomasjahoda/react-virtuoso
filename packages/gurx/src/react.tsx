@@ -14,7 +14,7 @@ export const RealmContext = React.createContext<null | Realm>(null)
 export function RealmProvider({
   children,
   initWith,
-  updateWith = {},
+  updateWith,
 }: {
   /**
    * The children to render
@@ -29,11 +29,13 @@ export function RealmProvider({
    */
   updateWith?: Record<string, unknown>
 }) {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // oxlint-disable-next-line exhaustive-deps
   const theRealm = React.useMemo(() => new Realm(initWith), [])
 
   React.useEffect(() => {
-    theRealm.pubIn(updateWith)
+    if (updateWith !== undefined) {
+      theRealm.pubIn(updateWith)
+    }
   }, [updateWith, theRealm])
 
   return <RealmContext.Provider value={theRealm}>{children}</RealmContext.Provider>

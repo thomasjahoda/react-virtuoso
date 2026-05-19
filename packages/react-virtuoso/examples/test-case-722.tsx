@@ -66,7 +66,9 @@ export function Example() {
 
   const prepend = () => {
     setTimeout(() => {
-      if (loadedCount < TOTAL_COUNT) setLoadedCount(loadedCount + PAGE_COUNT > TOTAL_COUNT ? TOTAL_COUNT : loadedCount + PAGE_COUNT)
+      if (loadedCount < TOTAL_COUNT) {
+        setLoadedCount(loadedCount + PAGE_COUNT > TOTAL_COUNT ? TOTAL_COUNT : loadedCount + PAGE_COUNT)
+      }
     }, 250)
   }
 
@@ -75,7 +77,7 @@ export function Example() {
       <Virtuoso
         firstItemIndex={TOTAL_COUNT - loadedCount}
         itemContent={(index) => {
-          return <div style={{ height: SHORT_IDX[index] ? '15px' : '150px' }}>{index}</div>
+          return <div style={{ height: index in SHORT_IDX ? '15px' : '150px' }}>{index}</div>
         }}
         overscan={0}
         startReached={prepend}

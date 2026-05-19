@@ -6,6 +6,7 @@ dist
 build
 .turbo
 test-results
+__screenshots__
 
 # generated docs
 docs/virtuoso-api/*
@@ -13,3 +14,7 @@ docs/virtuoso-message-list-api/*
 docs/virtuoso-masonry-api/*
 apps/virtuoso.dev/docs/virtuoso-masonry-api/*
 .vscode
+.serena
+.claude/settings.local.json
+plans
+prompts

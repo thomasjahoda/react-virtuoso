@@ -1,6 +1,8 @@
 import styled from '@emotion/styled'
 
-import { GridComponents, VirtuosoGrid } from '../src'
+import { VirtuosoGrid } from '../src'
+
+import type { GridComponents } from '../src'
 
 const ItemContainer = styled.div`
   box-sizing: border-box;
@@ -37,7 +39,7 @@ const ItemWrapper = styled.div`
 const ListContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
-` as GridComponents['List']
+` as NonNullable<GridComponents['List']>
 
 export function Example() {
   return (

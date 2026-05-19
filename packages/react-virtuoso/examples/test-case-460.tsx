@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { Virtuoso, VirtuosoProps } from '../src'
+import { Virtuoso } from '../src'
+
+import type { VirtuosoProps } from '../src'
 
 const getRandomArbitrary = (min: number, max: number) => {
   return Math.random() * (max - min) + min
@@ -37,7 +39,7 @@ export function Example() {
 
   useEffect(() => {
     setTimeout(() => {
-      setItems(getItems(Number(id)))
+      setItems(getItems(id))
       setFirstItemIndex(ITEM_INDEX)
     }, 200)
 

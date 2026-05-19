@@ -1,17 +1,17 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 /**
  * Transformers change and combine streams, similar to operators.
  * urx comes with two combinators - [[combineLatest]] and [[merge]], and one convenience filter - [[duc]].
  *
  * @packageDocumentation
  */
-import { Emitter, publish, reset, subscribe, Subscription } from './actions'
+import { publish, reset, subscribe } from './actions'
 import { RESET, SUBSCRIBE } from './constants'
-import { Comparator, defaultComparator, distinctUntilChanged, pipe } from './pipe'
+import { defaultComparator, distinctUntilChanged, pipe } from './pipe'
 import { stream } from './streams'
 import { joinProc } from './utils'
+
+import type { Emitter, Subscription } from './actions'
+import type { Comparator } from './pipe'
 
 /**
  * Creates an emitter with the latest values from all passed emitters as an array.
@@ -33,28 +33,81 @@ import { joinProc } from './utils'
  */
 export function combineLatest<O1, O2>(...emitters: [Emitter<O1>, Emitter<O2>]): Emitter<[O1, O2]> // prettier-ignore
 
-export function combineLatest<O1, O2, O3>( ...emitters: [Emitter<O1>, Emitter<O2>, Emitter<O3>]): Emitter<[O1, O2, O3]> // prettier-ignore
+export function combineLatest<O1, O2, O3>(...emitters: [Emitter<O1>, Emitter<O2>, Emitter<O3>]): Emitter<[O1, O2, O3]> // prettier-ignore
 
-export function combineLatest<O1, O2, O3, O4>( ...emitters: [Emitter<O1>, Emitter<O2>, Emitter<O3>, Emitter<O4>]): Emitter<[O1, O2, O3, O4]> // prettier-ignore
-export function combineLatest<O1, O2, O3>( ...emitters: [Emitter<O1>, Emitter<O2>, Emitter<O3>]): Emitter<[O1, O2, O3]> // prettier-ignore
-export function combineLatest<O1, O2, O3, O4, O5>( ...emitters: [Emitter<O1>, Emitter<O2>, Emitter<O3>, Emitter<O4>, Emitter<O5>]): Emitter<[O1, O2, O3, O4, O5]> // prettier-ignore
-export function combineLatest<O1, O2, O3, O4, O5, O6>( ...emitters: [Emitter<O1>, Emitter<O2>, Emitter<O3>, Emitter<O4>, Emitter<O5>, Emitter<O6>]): Emitter<[O1, O2, O3, O4, O5, O6]> // prettier-ignore
-export function combineLatest<O1, O2, O3, O4, O5, O6, O7>( ...emitters: [Emitter<O1>, Emitter<O2>, Emitter<O3>, Emitter<O4>, Emitter<O5>, Emitter<O6>, Emitter<O7>]): Emitter<[O1, O2, O3, O4, O5, O6, O7]> // prettier-ignore
-export function combineLatest<O1, O2, O3, O4, O5, O6, O7, O8>( ...emitters: [Emitter<O1>, Emitter<O2>, Emitter<O3>, Emitter<O4>, Emitter<O5>, Emitter<O6>, Emitter<O7>, Emitter<O8>]): Emitter<[O1, O2, O3, O4, O5, O6, O7, O8]> // prettier-ignore
-export function combineLatest<O1, O2, O3, O4, O5, O6, O7, O8, O9>( ...emitters: [Emitter<O1>, Emitter<O2>, Emitter<O3>, Emitter<O4>, Emitter<O5>, Emitter<O6>, Emitter<O7>, Emitter<O8>, Emitter<O9>]): Emitter<[O1, O2, O3, O4, O5, O6, O7, O8, O9]> // prettier-ignore
-export function combineLatest<O1, O2, O3, O4, O5, O6, O7, O8, O9, O10>( ...emitters: [Emitter<O1>, Emitter<O2>, Emitter<O3>, Emitter<O4>, Emitter<O5>, Emitter<O6>, Emitter<O7>, Emitter<O8>, Emitter<O9>, Emitter<O10>]): Emitter<[O1, O2, O3, O4, O5, O6, O7, O8, O9, O10]> // prettier-ignore
-export function combineLatest<O1, O2, O3, O4, O5, O6, O7, O8, O9, O10, O11>( ...emitters: [Emitter<O1>, Emitter<O2>, Emitter<O3>, Emitter<O4>, Emitter<O5>, Emitter<O6>, Emitter<O7>, Emitter<O8>, Emitter<O9>, Emitter<O10>, Emitter<O11>]): Emitter<[O1, O2, O3, O4, O5, O6, O7, O8, O9, O10, O11]> // prettier-ignore
+export function combineLatest<O1, O2, O3, O4>(...emitters: [Emitter<O1>, Emitter<O2>, Emitter<O3>, Emitter<O4>]): Emitter<[O1, O2, O3, O4]> // prettier-ignore
+export function combineLatest<O1, O2, O3>(...emitters: [Emitter<O1>, Emitter<O2>, Emitter<O3>]): Emitter<[O1, O2, O3]> // prettier-ignore
+export function combineLatest<O1, O2, O3, O4, O5>(
+  ...emitters: [Emitter<O1>, Emitter<O2>, Emitter<O3>, Emitter<O4>, Emitter<O5>]
+): Emitter<[O1, O2, O3, O4, O5]> // prettier-ignore
+export function combineLatest<O1, O2, O3, O4, O5, O6>(
+  ...emitters: [Emitter<O1>, Emitter<O2>, Emitter<O3>, Emitter<O4>, Emitter<O5>, Emitter<O6>]
+): Emitter<[O1, O2, O3, O4, O5, O6]> // prettier-ignore
+export function combineLatest<O1, O2, O3, O4, O5, O6, O7>(
+  ...emitters: [Emitter<O1>, Emitter<O2>, Emitter<O3>, Emitter<O4>, Emitter<O5>, Emitter<O6>, Emitter<O7>]
+): Emitter<[O1, O2, O3, O4, O5, O6, O7]> // prettier-ignore
+export function combineLatest<O1, O2, O3, O4, O5, O6, O7, O8>(
+  ...emitters: [Emitter<O1>, Emitter<O2>, Emitter<O3>, Emitter<O4>, Emitter<O5>, Emitter<O6>, Emitter<O7>, Emitter<O8>]
+): Emitter<[O1, O2, O3, O4, O5, O6, O7, O8]> // prettier-ignore
+export function combineLatest<O1, O2, O3, O4, O5, O6, O7, O8, O9>(
+  ...emitters: [Emitter<O1>, Emitter<O2>, Emitter<O3>, Emitter<O4>, Emitter<O5>, Emitter<O6>, Emitter<O7>, Emitter<O8>, Emitter<O9>]
+): Emitter<[O1, O2, O3, O4, O5, O6, O7, O8, O9]> // prettier-ignore
+export function combineLatest<O1, O2, O3, O4, O5, O6, O7, O8, O9, O10>(
+  ...emitters: [
+    Emitter<O1>,
+    Emitter<O2>,
+    Emitter<O3>,
+    Emitter<O4>,
+    Emitter<O5>,
+    Emitter<O6>,
+    Emitter<O7>,
+    Emitter<O8>,
+    Emitter<O9>,
+    Emitter<O10>,
+  ]
+): Emitter<[O1, O2, O3, O4, O5, O6, O7, O8, O9, O10]> // prettier-ignore
+export function combineLatest<O1, O2, O3, O4, O5, O6, O7, O8, O9, O10, O11>(
+  ...emitters: [
+    Emitter<O1>,
+    Emitter<O2>,
+    Emitter<O3>,
+    Emitter<O4>,
+    Emitter<O5>,
+    Emitter<O6>,
+    Emitter<O7>,
+    Emitter<O8>,
+    Emitter<O9>,
+    Emitter<O10>,
+    Emitter<O11>,
+  ]
+): Emitter<[O1, O2, O3, O4, O5, O6, O7, O8, O9, O10, O11]> // prettier-ignore
+export function combineLatest<O1, O2, O3, O4, O5, O6, O7, O8, O9, O10, O11, O12>(
+  ...emitters: [
+    Emitter<O1>,
+    Emitter<O2>,
+    Emitter<O3>,
+    Emitter<O4>,
+    Emitter<O5>,
+    Emitter<O6>,
+    Emitter<O7>,
+    Emitter<O8>,
+    Emitter<O9>,
+    Emitter<O10>,
+    Emitter<O11>,
+    Emitter<O12>,
+  ]
+): Emitter<[O1, O2, O3, O4, O5, O6, O7, O8, O9, O10, O11, O12]> // prettier-ignore
 export function combineLatest(...emitters: Emitter<any>[]): Emitter<any> {
   const innerSubject = stream<any>()
   const values = new Array(emitters.length)
   let called = 0
-  const allCalled = Math.pow(2, emitters.length) - 1
+  const allCalled = 2 ** emitters.length - 1
 
   emitters.forEach((source, index) => {
-    const bit = Math.pow(2, index)
+    const bit = 2 ** index
     subscribe(source, (value) => {
       values[index] = value
-      called = called | bit
+      called |= bit
       if (called === allCalled) {
         publish(innerSubject, values)
       }
@@ -117,7 +170,6 @@ export function merge<T>(...sources: Emitter<T>[]): Emitter<T> {
         // do nothing, we are stateless
         return
       case SUBSCRIBE:
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         return joinProc(...sources.map((source) => subscribe(source, subscription!)))
     }
   } as Emitter<T>

@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test'
 
-//@ts-expect-error - type module and playwright
 import { navigateToExample } from './utils.ts'
 
 test.describe('jagged grouped list', () => {

@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /**
  * `@virtuoso.dev/react-urx` exports the [[systemToComponent]] function.
  * It wraps urx systems in to UI **logic provider components**,
@@ -32,9 +29,9 @@
  */
 import React from 'react'
 
-import type { AnySystemSpec, Emitter, Publisher, SR, StatefulStream, Stream } from '../urx'
-
 import * as u from '../urx'
+
+import type { AnySystemSpec, Emitter, Publisher, SR, StatefulStream, Stream } from '../urx'
 
 /** @internal */
 type Dict<T> = Record<string, T>
@@ -47,7 +44,7 @@ function omit<O extends Dict<any>, K extends readonly string[]>(keys: K, obj: O)
   const len = keys.length
 
   while (idx < len) {
-    index[keys[idx]] = 1
+    index[keys[idx]!] = 1
     idx += 1
   }
 
@@ -156,7 +153,7 @@ export function systemToComponent<SS extends AnySystemSpec, M extends SystemProp
   map: M,
   Root?: R
 ) {
-  type ContextValue = ReturnType<SS['constructor']> & { suppressFlushSync: boolean }
+  type ContextValue = ReturnType<SS['constructor']>
   const requiredPropNames = Object.keys(map.required || {})
   const optionalPropNames = Object.keys(map.optional || {})
   const methodNames = Object.keys(map.methods || {})
@@ -170,23 +167,23 @@ export function systemToComponent<SS extends AnySystemSpec, M extends SystemProp
   type CompMethods = MethodsFromPropMap<SS, M>
 
   function applyPropsToSystem(system: ContextValue, props: any) {
-    if (system.propsReady) {
+    if (system.propsReady !== undefined) {
       u.publish(system.propsReady, false)
     }
 
     for (const requiredPropName of requiredPropNames) {
-      const stream = system[map.required![requiredPropName]]
+      const stream = system[map.required![requiredPropName] as keyof ContextValue]
       u.publish(stream, props[requiredPropName])
     }
 
     for (const optionalPropName of optionalPropNames) {
       if (optionalPropName in props) {
-        const stream = system[map.optional![optionalPropName]]
+        const stream = system[map.optional![optionalPropName] as keyof ContextValue]
         u.publish(stream, props[optionalPropName])
       }
     }
 
-    if (system.propsReady) {
+    if (system.propsReady !== undefined) {
       u.publish(system.propsReady, true)
     }
   }
@@ -194,7 +191,7 @@ export function systemToComponent<SS extends AnySystemSpec, M extends SystemProp
   function buildMethods(system: ContextValue) {
     return methodNames.reduce((acc, methodName) => {
       ;(acc as any)[methodName] = (value: any) => {
-        const stream = system[map.methods![methodName]]
+        const stream = system[map.methods![methodName] as keyof ContextValue]
         u.publish(stream, value)
       }
       return acc
@@ -203,7 +200,7 @@ export function systemToComponent<SS extends AnySystemSpec, M extends SystemProp
 
   function buildEventHandlers(system: ContextValue) {
     return eventNames.reduce<Record<string, Emitter<any>>>((handlers, eventName) => {
-      handlers[eventName] = u.eventHandler(system[map.events![eventName]])
+      handlers[eventName] = u.eventHandler(system[map.events![eventName] as keyof ContextValue])
       return handlers
     }, {})
   }
@@ -212,7 +209,7 @@ export function systemToComponent<SS extends AnySystemSpec, M extends SystemProp
    * A React component generated from an urx system
    */
 
-  const Component = React.forwardRef<CompMethods, CompProps>((propsWithChildren, ref) => {
+  const Component = React.forwardRef<CompMethods, CompProps>(function SystemComponent(propsWithChildren, ref) {
     const { children, ...props } = propsWithChildren as any
 
     const [system] = React.useState(() => {
@@ -226,7 +223,7 @@ export function systemToComponent<SS extends AnySystemSpec, M extends SystemProp
     useIsomorphicLayoutEffect(() => {
       for (const eventName of eventNames) {
         if (eventName in props) {
-          u.subscribe(handlers[eventName], props[eventName])
+          u.subscribe(handlers[eventName]!, props[eventName])
         }
       }
       return () => {
@@ -243,7 +240,7 @@ export function systemToComponent<SS extends AnySystemSpec, M extends SystemProp
     const RootComponent = Root as React.ComponentType<any>
     return (
       <Context.Provider value={system}>
-        {Root ? (
+        {Root !== undefined ? (
           <RootComponent {...omit([...requiredPropNames, ...optionalPropNames, ...eventNames], props)}>{children}</RootComponent>
         ) : (
           children
@@ -302,7 +299,7 @@ export function systemToComponent<SS extends AnySystemSpec, M extends SystemProp
     return value
   }
 
-  const useEmitterValue = React.version.startsWith('18') ? useEmitterValue18 : useEmitterValueLegacy
+  const useEmitterValue = parseInt(React.version) >= 18 ? useEmitterValue18 : useEmitterValueLegacy
 
   const useEmitter = <K extends keyof S, V = S[K] extends Stream<infer R> ? R : never>(key: K, callback: (value: V) => void) => {
     const context = React.useContext(Context)

@@ -38,7 +38,9 @@ export function newTree(): AANode {
 }
 
 export function remove(node: AANode, key: number): AANode {
-  if (empty(node)) return NIL_NODE
+  if (empty(node)) {
+    return NIL_NODE
+  }
 
   const { k, l, r } = node
 
@@ -105,7 +107,7 @@ export function insert(node: AANode, k: number, v: number): NonNilAANode {
   return rebalance(clone(node, { r: insert(node.r, k, v) }))
 }
 
-export function walkWithin(node: AANode, start: number, end: number): NodeData[] {
+function walkWithin(node: AANode, start: number, end: number): NodeData[] {
   if (empty(node)) {
     return []
   }
@@ -177,7 +179,7 @@ function deleteLast(node: NonNilAANode): AANode {
   return empty(node.r) ? node.l : adjust(clone(node, { r: deleteLast(node.r) }))
 }
 
-export function clone(node: NonNilAANode, args: Partial<NonNilAANode>): NonNilAANode {
+function clone(node: NonNilAANode, args: Partial<NonNilAANode>): NonNilAANode {
   return newAANode(args.k ?? node.k, args.v ?? node.v, args.lvl ?? node.lvl, args.l ?? node.l, args.r ?? node.r)
 }
 
@@ -238,7 +240,7 @@ export function keys(node: AANode): number[] {
   return [...keys(node.l), node.k, ...keys(node.r)]
 }
 
-export function ranges(node: AANode): Range[] {
+function ranges(node: AANode): Range[] {
   return toRanges(walk(node))
 }
 
@@ -259,12 +261,12 @@ export function arrayToRanges<T, V>(
     return []
   }
 
-  let { index: start, value } = parser(items[0])
+  let { index: start, value } = parser(items[0]!)
 
   const result = []
 
   for (let i = 1; i < length; i++) {
-    const { index: nextIndex, value: nextValue } = parser(items[i])
+    const { index: nextIndex, value: nextValue } = parser(items[i]!)
     result.push({ end: nextIndex - 1, start, value })
 
     start = nextIndex

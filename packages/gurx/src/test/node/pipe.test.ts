@@ -4,8 +4,8 @@ import { Cell, Realm, Signal } from '../..'
 import { debounceTime, filter, map, mapTo, once, onNext, scan, throttleTime, withLatestFrom } from '../../operators'
 import { noop } from '../../utils'
 
-async function awaitCall(cb: () => unknown, delay: number) {
-  return await new Promise((resolve) => {
+function awaitCall(cb: () => unknown, delay: number) {
+  return new Promise((resolve) => {
     setTimeout(() => {
       cb()
       resolve(undefined)
@@ -45,6 +45,114 @@ describe('pipe', () => {
     expect(spy).toHaveBeenCalledWith(4)
     expect(spy).not.toHaveBeenCalledWith(3)
     expect(spy).toHaveBeenCalledWith(2)
+  })
+
+  it('filter blocks propagation through a deep chain', () => {
+    const r = new Realm()
+    const a = Signal<number>()
+
+    const b = r.pipe(
+      a,
+      filter((val: number) => val % 2 === 0)
+    )
+    const c = r.pipe(
+      b,
+      map((v) => v * 10)
+    )
+    const d = r.pipe(
+      c,
+      map((v) => v + 1)
+    )
+    const e = r.pipe(
+      d,
+      map((v) => v + 2)
+    )
+
+    const spyB = vi.fn()
+    const spyC = vi.fn()
+    const spyD = vi.fn()
+    const spyE = vi.fn()
+    r.sub(b, spyB)
+    r.sub(c, spyC)
+    r.sub(d, spyD)
+    r.sub(e, spyE)
+
+    r.pub(a, 3)
+    expect(spyB).toHaveBeenCalledTimes(0)
+    expect(spyC).toHaveBeenCalledTimes(0)
+    expect(spyD).toHaveBeenCalledTimes(0)
+    expect(spyE).toHaveBeenCalledTimes(0)
+
+    r.pub(a, 4)
+    expect(spyB).toHaveBeenCalledWith(4)
+    expect(spyC).toHaveBeenCalledWith(40)
+    expect(spyD).toHaveBeenCalledWith(41)
+    expect(spyE).toHaveBeenCalledWith(43)
+  })
+
+  it('filter on one diamond branch does not block the other', () => {
+    const r = new Realm()
+    const a = Signal<number>()
+
+    const left = r.pipe(
+      a,
+      filter((v: number) => v % 2 === 0),
+      map((v) => v * 10)
+    )
+    const right = r.pipe(
+      a,
+      map((v) => v + 1)
+    )
+
+    const spyLeft = vi.fn()
+    const spyRight = vi.fn()
+    r.sub(left, spyLeft)
+    r.sub(right, spyRight)
+
+    r.pub(a, 3)
+    expect(spyLeft).toHaveBeenCalledTimes(0)
+    expect(spyRight).toHaveBeenCalledWith(4)
+
+    r.pub(a, 4)
+    expect(spyLeft).toHaveBeenCalledWith(40)
+    expect(spyRight).toHaveBeenCalledWith(5)
+  })
+
+  it('multiple filters at different depths in the same chain', () => {
+    const r = new Realm()
+    const a = Signal<number>()
+
+    const b = r.pipe(
+      a,
+      filter((v: number) => v > 0)
+    )
+    const c = r.pipe(
+      b,
+      map((v) => v * 2)
+    )
+    const d = r.pipe(
+      c,
+      filter((v: number) => v < 100)
+    )
+    const e = r.pipe(
+      d,
+      map((v) => v + 1)
+    )
+
+    const spy = vi.fn()
+    r.sub(e, spy)
+
+    r.pub(a, -1)
+    expect(spy).toHaveBeenCalledTimes(0)
+
+    r.pub(a, 5)
+    expect(spy).toHaveBeenCalledWith(11)
+
+    r.pub(a, 60)
+    expect(spy).toHaveBeenCalledTimes(1)
+
+    r.pub(a, 10)
+    expect(spy).toHaveBeenCalledWith(21)
   })
 
   it('pulls values in withLatestFrom', () => {
@@ -212,7 +320,7 @@ describe('pipe', () => {
       r.pipe(
         a,
         withLatestFrom(b),
-        map(([, b]) => b + 1)
+        map(([, bVal]) => bVal + 1)
       ),
       b
     )

@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { contextSystem } from './contextSystem'
 import { domIOSystem } from './domIOSystem'
 import { initialTopMostItemIndexSystem } from './initialTopMostItemIndexSystem'
-import { FollowOutput, FollowOutputScalarType, ScrollIntoViewLocation } from './interfaces'
 import { loggerSystem, LogLevel } from './loggerSystem'
 import { propsReadySystem } from './propsReadySystem'
 import { scrollIntoViewSystem } from './scrollIntoViewSystem'
@@ -11,8 +9,10 @@ import { sizeSystem } from './sizeSystem'
 import { stateFlagsSystem } from './stateFlagsSystem'
 import * as u from './urx'
 
+import type { FollowOutput, FollowOutputScalarType, ScrollIntoViewLocation } from './interfaces'
+
 function normalizeFollowOutput(follow: FollowOutputScalarType): FollowOutputScalarType {
-  if (!follow) {
+  if (follow === false) {
     return false
   }
   return follow === 'smooth' ? 'smooth' : 'auto'
@@ -61,7 +61,7 @@ export const followOutputSystem = u.system(
             // if scrolling to index is in progress,
             // assume that a previous followOutput response is going
             followOutputBehavior = behaviorFromFollowOutput(followOutput, isAtBottom || scrollingInProgress)
-            shouldFollow = shouldFollow && !!followOutputBehavior
+            shouldFollow = shouldFollow && followOutputBehavior !== false
           }
 
           return { followOutputBehavior, shouldFollow, totalCount }
@@ -69,13 +69,13 @@ export const followOutputSystem = u.system(
         u.filter(({ shouldFollow }) => shouldFollow)
       ),
       ({ followOutputBehavior, totalCount }) => {
-        if (pendingScrollHandle) {
+        if (pendingScrollHandle !== null) {
           pendingScrollHandle()
           pendingScrollHandle = null
         }
 
         // if the items have fixed size, we can scroll immediately
-        if (u.getValue(fixedItemSize)) {
+        if (u.getValue(fixedItemSize) !== undefined) {
           requestAnimationFrame(() => {
             u.getValue(log)('following output to ', { totalCount }, LogLevel.DEBUG)
             scrollToBottom(followOutputBehavior)
@@ -92,7 +92,7 @@ export const followOutputSystem = u.system(
 
     function trapNextSizeIncrease(followOutput: boolean) {
       const cancel = u.handleNext(atBottomState, (state) => {
-        if (followOutput && !state.atBottom && state.notAtBottomBecause === 'SIZE_INCREASED' && !pendingScrollHandle) {
+        if (followOutput && !state.atBottom && state.notAtBottomBecause === 'SIZE_INCREASED' && pendingScrollHandle === null) {
           u.getValue(log)('scrolling to bottom due to increased size', {}, LogLevel.DEBUG)
           scrollToBottom('auto')
         }
@@ -103,7 +103,7 @@ export const followOutputSystem = u.system(
     u.subscribe(
       u.pipe(
         u.combineLatest(u.duc(followOutput), totalCount, propsReady),
-        u.filter(([follow, , ready]) => follow && ready),
+        u.filter(([follow, , ready]) => follow !== false && ready),
         u.scan(
           ({ value }, [, next]) => {
             return { refreshed: value === next, value: next }
@@ -126,7 +126,7 @@ export const followOutputSystem = u.system(
     })
 
     u.subscribe(u.combineLatest(u.duc(followOutput), atBottomState), ([followOutput, state]) => {
-      if (followOutput && !state.atBottom && state.notAtBottomBecause === 'VIEWPORT_HEIGHT_DECREASING') {
+      if (followOutput !== false && !state.atBottom && state.notAtBottomBecause === 'VIEWPORT_HEIGHT_DECREASING') {
         scrollToBottom('auto')
       }
     })
@@ -137,8 +137,7 @@ export const followOutputSystem = u.system(
           context: unknown
           totalCount: number
           scrollingInProgress: boolean
-          // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-        }) => ScrollIntoViewLocation | null | undefined | false | void)
+        }) => ScrollIntoViewLocation | null | undefined | false)
     >(null)
 
     const tcOrDataChange = u.stream<number>()
@@ -165,13 +164,13 @@ export const followOutputSystem = u.system(
         u.throttleTime(0)
       ),
       (viewLocation) => {
-        if (pendingScrollHandle) {
+        if (pendingScrollHandle !== null) {
           pendingScrollHandle()
           pendingScrollHandle = null
         }
 
         // if the items have fixed size, we can scroll immediately
-        if (u.getValue(fixedItemSize)) {
+        if (u.getValue(fixedItemSize) !== undefined) {
           requestAnimationFrame(() => {
             u.getValue(log)('scrolling into view', {})
             u.publish(scrollIntoView, viewLocation)

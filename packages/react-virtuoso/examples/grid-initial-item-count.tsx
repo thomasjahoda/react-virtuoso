@@ -1,8 +1,11 @@
-import { debounce } from 'lodash'
 import * as React from 'react'
 import { createHashRouter, Link, RouterProvider, useParams, useSearchParams } from 'react-router-dom'
 
-import { GridComponents, GridStateSnapshot, ListRange, VirtuosoGrid } from '../src'
+import { debounce } from 'lodash'
+
+import { VirtuosoGrid } from '../src'
+
+import type { GridComponents, GridStateSnapshot, ListRange } from '../src'
 
 function fetchData(page: number) {
   return new Promise<string[]>((resolve) => {
@@ -16,7 +19,7 @@ const itemContent = (index: number, data: string | undefined) => {
   return (
     <div style={{ backgroundColor: 'red', border: '1px solid black', height: 200 }}>
       Item {index} -{' '}
-      {data ? (
+      {data !== undefined && data !== '' ? (
         <div>
           <Link to={`/item/${index}`}>See details</Link>
           {data}
@@ -37,7 +40,7 @@ const persistState = debounce((snapshot: GridStateSnapshot) => {
 function loadPersistedState() {
   let snapshot: GridStateSnapshot | null = null
   const savedState = localStorage.getItem(LOCAL_STORAGE_KEY)
-  if (savedState) {
+  if (savedState !== null && savedState !== '') {
     snapshot = JSON.parse(savedState) as GridStateSnapshot
   }
   return snapshot
@@ -85,7 +88,7 @@ function Example() {
           List: TheList,
         }}
         initialItemCount={40} // if set to INITIAL_ITEM_COUNT, end reached is never called, wonder if this is correct.
-        {...(initialTopMostItemIndex !== null ? { initialTopMostItemIndex } : {})}
+        {...(initialTopMostItemIndex !== null ? { initialTopMostItemIndex } : undefined)}
         data={data}
         endReached={loadNextPage}
         itemContent={itemContent}
@@ -153,7 +156,7 @@ const router = createHashRouter([
   { element: <Detail />, path: '/item/:id' },
 ])
 
-const TheList: GridComponents['List'] = React.forwardRef(({ style, ...props }, ref) => {
+const TheList: NonNullable<GridComponents['List']> = React.forwardRef(function TheList({ style, ...props }, ref) {
   return <div ref={ref} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', ...style }} {...props} />
 })
 

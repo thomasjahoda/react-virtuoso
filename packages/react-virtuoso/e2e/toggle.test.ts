@@ -1,7 +1,8 @@
-import { expect, Page, test } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
-//@ts-expect-error - type module and playwright
 import { navigateToExample } from './utils.ts'
+
+import type { Page } from '@playwright/test'
 
 test.describe('list with prependable items', () => {
   test.beforeEach(async ({ baseURL, page }) => {

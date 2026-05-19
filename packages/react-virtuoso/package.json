@@ -1,35 +1,47 @@
 {
   "name": "@thomasjahoda-forks/react-virtuoso",
-  "description": "A virtual scroll React component for efficiently rendering large scrollable lists, grids, tables, and feeds",
-  "author": "Petyo Ivanov",
-  "sideEffects": false,
   "version": "4.14.4",
-  "homepage": "https://virtuoso.dev/",
-  "license": "MIT",
-  "type": "module",
-  "source": "src/index.tsx",
-  "main": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "description": "A virtual scroll React component for efficiently rendering large scrollable lists, grids, tables, and feeds",
   "keywords": [
+    "chat",
+    "endless",
+    "feed",
+    "grid",
+    "infinite",
+    "list",
+    "load more",
     "react",
     "reactjs",
-    "virtual",
-    "endless",
-    "load more",
-    "list",
     "scrolling",
-    "infinite",
-    "virtualized",
-    "grid",
-    "feed",
-    "chat"
+    "virtual",
+    "virtualized"
   ],
+  "homepage": "https://virtuoso.dev/",
+  "license": "MIT",
+  "author": "Petyo Ivanov",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/petyosi/react-virtuoso.git",
+    "directory": "packages/react-virtuoso"
+  },
+  "source": "src/index.tsx",
   "files": [
     "dist"
   ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/petyosi/react-virtuoso.git"
+  "sideEffects": false,
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "publishConfig": {
+    "provenance": true
   },
   "scripts": {
     "dev": "vite build",
@@ -37,60 +49,39 @@
     "test": "vitest run",
     "test:watch": "vitest watch",
     "e2e": "playwright test --workers=1",
-    "lint": "eslint",
-    "typecheck": "tsc",
+    "lint": "oxlint --type-aware --type-check",
+    "typecheck": "tsgo --noEmit",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "ladle": "LADLE=true ladle serve",
-    "ci-setup": "npx playwright install --with-deps"
+    "ci-setup": "npx playwright install --with-deps chromium"
+  },
+  "devDependencies": {
+    "@emotion/styled": "^11.10.8",
+    "@faker-js/faker": "^7.6.0",
+    "@ladle/react": "^5.0.1",
+    "@microsoft/api-extractor": "^7.55.1",
+    "@playwright/test": "^1.58.2",
+    "@testing-library/react": "^16.3.0",
+    "@types/jsdom": "^21.1.1",
+    "@types/lodash": "^4.14.194",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "jsdom": "^27.4.0",
+    "lodash": "^4.17.21",
+    "playwright": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "react-router-dom": "^6.14.0",
+    "typescript": "catalog:",
+    "uuid": "^11.1.0",
+    "vite": "catalog:",
+    "vite-plugin-dts": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "react": ">=16 || >=17 || >= 18 || >= 19",
     "react-dom": ">=16 || >=17 || >= 18 || >=19"
-  },
-  "devDependencies": {
-    "@emotion/core": "^11.0.0",
-    "@emotion/styled": "^11.10.8",
-    "@eslint/js": "^9.19.0",
-    "@faker-js/faker": "^7.6.0",
-    "@ladle/react": "^5.0.1",
-    "@playwright/test": "^1.33.0",
-    "@tanstack/react-table": "^8.9.11",
-    "@testing-library/react": "^14.0.0",
-    "@types/jsdom": "^21.1.1",
-    "@types/lodash": "^4.14.194",
-    "@types/react": "^18.2.64",
-    "@types/react-beautiful-dnd": "^13.1.4",
-    "@types/react-dom": "^18.2.21",
-    "@types/react-router-dom": "^5.3.3",
-    "@vitejs/plugin-react-swc": "^3.7.2",
-    "clsx": "^1.2.1",
-    "eslint": "^9.19.0",
-    "eslint-config-prettier": "^10.0.1",
-    "eslint-plugin-perfectionist": "^4.7.0",
-    "eslint-plugin-prettier": "^5.2.3",
-    "eslint-plugin-react": "^7.37.4",
-    "eslint-plugin-react-hooks": "^5.1.0",
-    "globals": "^15.14.0",
-    "immer": "^10.0.1",
-    "jsdom": "^26.0.0",
-    "lodash": "^4.17.21",
-    "playwright": "^1.33.0",
-    "prettier": "^3.4.2",
-    "react": "18.3.1",
-    "react-beautiful-dnd": "^13.1.1",
-    "react-dom": "18.3.1",
-    "react-router-dom": "^6.14.0",
-    "tslib": "^2.5.0",
-    "typescript": "^5.7.3",
-    "typescript-eslint": "^8.22.0",
-    "uuid": "^11.1.0",
-    "vite": "^6.0.11",
-    "vite-plugin-dts": "^4.5.0",
-    "vitest": "^3.0.4"
-  },
-  "prettier": {
-    "printWidth": 140,
-    "semi": false,
-    "singleQuote": true,
-    "trailingComma": "es5"
   }
 }

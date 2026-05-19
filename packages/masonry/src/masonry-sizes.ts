@@ -1,12 +1,13 @@
 import { Cell, changeWith, combine, DerivedCell, link, map, pipe, scan, Signal, withLatestFrom } from '@virtuoso.dev/gurx'
 
-import type { OffsetPoint, SizeRange } from './interfaces'
-
 import { totalCount$ } from './data'
-import { type AANode, newTree } from './sizing/AATree'
+import { newTree } from './sizing/AATree'
 import { insertRanges } from './sizing/insertRanges'
 import { offsetTreeReducer } from './sizing/offsetTreeReducer'
 import { sizeTreeReducer } from './sizing/sizeTreeReducer'
+
+import type { OffsetPoint, SizeRange } from './interfaces'
+import type { AANode } from './sizing/AATree'
 
 type SizeTreeState = [AANode, number]
 type OffsetTreeState = [OffsetPoint[], number, number, number]
@@ -20,10 +21,8 @@ export const knownSizes$ = Cell<number[]>([], () => {
     for (const [index, size] of Object.entries(sizes)) {
       result[Number.parseInt(index, 10)] = size
     }
-    // - this is intentional. the array might have holes
-    // eslint-disable-next-line @typescript-eslint/prefer-for-of
+    // oxlint-disable-next-line prefer-for-of -- intentional: array may have holes
     for (let i = 0; i < result.length; i++) {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (result[i] === undefined) {
         return knownSizes
       }
@@ -47,17 +46,17 @@ const sizeTreesState$ = Cell<SizeTreeState[]>([], () => {
           const columnHeights = Array.from({ length: columnCount }, () => 0)
           const columnCounts = Array.from({ length: columnCount }, () => 0)
 
-          // eslint-disable-next-line @typescript-eslint/prefer-for-of
+          // oxlint-disable-next-line prefer-for-of
           for (let i = 0; i < knownSizes.length; i++) {
             const size = knownSizes[i]
 
             // find the shortest column
             const shortestColumnIndex = columnHeights.indexOf(Math.min(...columnHeights))
-            const indexInTree = columnCounts[shortestColumnIndex]
-            columnCounts[shortestColumnIndex]++
-            columnHeights[shortestColumnIndex] += size
-            newSizeTreeState[shortestColumnIndex] = insertRanges(newSizeTreeState[shortestColumnIndex][0], [
-              { endIndex: indexInTree, size, startIndex: indexInTree },
+            const indexInTree = columnCounts[shortestColumnIndex]!
+            columnCounts[shortestColumnIndex]!++
+            columnHeights[shortestColumnIndex]! += size!
+            newSizeTreeState[shortestColumnIndex] = insertRanges(newSizeTreeState[shortestColumnIndex]![0], [
+              { endIndex: indexInTree, size: size!, startIndex: indexInTree },
             ])
           }
         }
@@ -72,12 +71,12 @@ const sizeTreesState$ = Cell<SizeTreeState[]>([], () => {
     const sizeTrees: SizeTreeState[] = []
     for (let i = 0; i < ranges.length; i++) {
       const tree = trees[i] ?? newTree()
-      const columnRanges = ranges[i]
+      const columnRanges = ranges[i]!
       if (columnRanges.length === 0) {
         sizeTrees.push([tree, 0])
         continue
       }
-      sizeTrees.push(sizeTreeReducer(tree, [ranges[i], []]))
+      sizeTrees.push(sizeTreeReducer(tree, [ranges[i]!, []]))
     }
 
     return sizeTrees
@@ -106,7 +105,7 @@ const offsetTreesState$ = DerivedCell<OffsetTreeState[]>([], () => {
       const newOffsetTrees = []
       for (let i = 0; i < sizeTrees.length; i++) {
         const offsetTree = offsetTrees[i] ?? [[]]
-        newOffsetTrees.push(offsetTreeReducer(offsetTree[0], [sizeTrees[i], lastRangeStarts[i]]))
+        newOffsetTrees.push(offsetTreeReducer(offsetTree[0], [sizeTrees[i]!, lastRangeStarts[i]!]))
       }
 
       return newOffsetTrees
@@ -128,7 +127,7 @@ const lastHeights$ = DerivedCell<number[]>([], () =>
   )
 )
 
-export const lastOffsets$ = DerivedCell<number[]>([], () =>
+const lastOffsets$ = DerivedCell<number[]>([], () =>
   pipe(
     offsetTreesState$,
     map((state) => state.map(([, , lastOffset]) => lastOffset))
@@ -153,12 +152,12 @@ export const indexesInColumns$ = DerivedCell<number[][]>([], () => {
         const indexesInColumns: number[][] = Array.from({ length: columnCount }, () => [])
 
         for (let i = 0; i < knownSizes.length; i++) {
-          const size = knownSizes[i]
+          const size = knownSizes[i]!
           // find the shortest column
           const shortestColumnIndex = columnHeights.indexOf(Math.min(...columnHeights))
 
-          indexesInColumns[shortestColumnIndex].push(i)
-          columnHeights[shortestColumnIndex] += size
+          indexesInColumns[shortestColumnIndex]!.push(i)
+          columnHeights[shortestColumnIndex]! += size
         }
 
         return indexesInColumns
@@ -185,9 +184,9 @@ export const totalHeights$ = DerivedCell<number[]>([], () =>
       const remainingItemsPerColumn = Math.ceil((totalCount - distributedItems) / columnCount)
 
       const result = Array.from({ length: columnCount }, (_, i) => {
-        const itemsInColumn = indexesInColumns[i].length + remainingItemsPerColumn
-        const itemsToUseLastHeight = itemsInColumn - lastItemIndexes[i]
-        return lastOffsets[i] + itemsToUseLastHeight * lastHeights[i]
+        const itemsInColumn = indexesInColumns[i]!.length + remainingItemsPerColumn
+        const itemsToUseLastHeight = itemsInColumn - lastItemIndexes[i]!
+        return lastOffsets[i]! + itemsToUseLastHeight * lastHeights[i]!
       })
       return result
     })

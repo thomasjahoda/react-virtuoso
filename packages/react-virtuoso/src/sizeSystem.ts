@@ -1,10 +1,13 @@
-import { AANode, arrayToRanges, empty, find, findMaxKeyValue, insert, newTree, Range, rangesWithin, remove, walk } from './AATree'
-import { SizeFunction, SizeRange } from './interfaces'
-import { Log, loggerSystem, LogLevel } from './loggerSystem'
+import { arrayToRanges, empty, find, findMaxKeyValue, insert, newTree, rangesWithin, remove, walk } from './AATree'
+import { loggerSystem, LogLevel } from './loggerSystem'
 import { recalcSystem } from './recalcSystem'
 import * as u from './urx'
 import * as arrayBinarySearch from './utils/binaryArraySearch'
 import { correctItemSize } from './utils/correctItemSize'
+
+import type { AANode, Range } from './AATree'
+import type { SizeFunction, SizeRange } from './interfaces'
+import type { Log } from './loggerSystem'
 
 export type Data = readonly unknown[] | undefined
 
@@ -32,7 +35,7 @@ export function hasGroups(sizes: SizeState) {
   return !empty(sizes.groupOffsetTree)
 }
 
-export function indexComparator({ index: itemIndex }: OffsetPoint, index: number) {
+function indexComparator({ index: itemIndex }: OffsetPoint, index: number) {
   return index === itemIndex ? 0 : index < itemIndex ? -1 : 1
 }
 
@@ -48,7 +51,7 @@ export function initialSizeState(): SizeState {
   }
 }
 
-export function insertRanges(sizeTree: AANode<number>, ranges: SizeRange[]) {
+function insertRanges(sizeTree: AANode<number>, ranges: SizeRange[]) {
   let syncStart = empty(sizeTree) ? 0 : Infinity
 
   for (const range of ranges) {
@@ -99,12 +102,11 @@ export function insertRanges(sizeTree: AANode<number>, ranges: SizeRange[]) {
   return [sizeTree, syncStart] as const
 }
 
-export function isGroupLocation(location: FlatOrGroupedLocation): location is { groupIndex: number } {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+function isGroupLocation(location: FlatOrGroupedLocation): location is { groupIndex: number } {
   return typeof (location as any).groupIndex !== 'undefined'
 }
 
-export function offsetComparator({ offset: itemOffset }: OffsetPoint, offset: number) {
+function offsetComparator({ offset: itemOffset }: OffsetPoint, offset: number) {
   return offset === itemOffset ? 0 : offset < itemOffset ? -1 : 1
 }
 
@@ -125,7 +127,7 @@ export function originalIndexFromItemIndex(itemIndex: number, sizes: SizeState) 
   }
 
   let groupOffset = 0
-  while (sizes.groupIndices[groupOffset] <= itemIndex + groupOffset) {
+  while (sizes.groupIndices[groupOffset]! <= itemIndex + groupOffset) {
     groupOffset++
   }
   // we find the real item index, offsetting it by the number of group items before it
@@ -135,13 +137,12 @@ export function originalIndexFromItemIndex(itemIndex: number, sizes: SizeState) 
 export function originalIndexFromLocation(location: FlatOrGroupedLocation, sizes: SizeState, lastIndex: number) {
   if (isGroupLocation(location)) {
     // return the index of the first item below the index
-    return sizes.groupIndices[location.groupIndex] + 1
-  } else {
-    const numericIndex = location.index === 'LAST' ? lastIndex : location.index
-    let result = originalIndexFromItemIndex(numericIndex, sizes)
-    result = Math.max(0, result, Math.min(lastIndex, result))
-    return result
+    return sizes.groupIndices[location.groupIndex]! + 1
   }
+  const numericIndex = location.index === 'LAST' ? lastIndex : location.index
+  let result = originalIndexFromItemIndex(numericIndex, sizes)
+  result = Math.max(0, result, Math.min(lastIndex, result))
+  return result
 }
 
 export function rangesWithinOffsets(
@@ -177,8 +178,8 @@ export function sizeStateReducer(state: SizeState, [ranges, groupIndices, log, g
   // which should always pass an item and a group
   // the results contain two ranges, which we consider to mean that groups and items have different size
   if (groupIndices.length > 0 && empty(sizeTree) && ranges.length === 2) {
-    const groupSize = ranges[0].size
-    const itemSize = ranges[1].size
+    const groupSize = ranges[0]!.size
+    const itemSize = ranges[1]!.size
     newSizeTree = groupIndices.reduce((tree, groupIndex) => {
       return insert(insert(tree, groupIndex, groupSize), groupIndex + 1, itemSize)
     }, newSizeTree)
@@ -208,7 +209,7 @@ export function sizeStateReducer(state: SizeState, [ranges, groupIndices, log, g
 export function sizeTreeToRanges(sizeTree: AANode<number>): SizeRange[] {
   return walk(sizeTree).map(({ k: startIndex, v: size }, index, sizeArray) => {
     const nextSize = sizeArray[index + 1]
-    const endIndex = nextSize ? nextSize.k - 1 : Infinity
+    const endIndex = nextSize !== undefined ? nextSize.k - 1 : Infinity
 
     return { endIndex, size, startIndex }
   })
@@ -218,7 +219,7 @@ function affectedGroupCount(offset: number, groupIndices: number[]) {
   let recognizedOffsetItems = 0
   let groupIndex = 0
   while (recognizedOffsetItems < offset) {
-    recognizedOffsetItems += groupIndices[groupIndex + 1] - groupIndices[groupIndex] - 1
+    recognizedOffsetItems += groupIndices[groupIndex + 1]! - groupIndices[groupIndex]! - 1
     groupIndex++
   }
   const offsetIsExact = recognizedOffsetItems === offset
@@ -236,13 +237,13 @@ function createOffsetTree(prevOffsetTree: OffsetPoint[], syncStart: number, size
 
   if (syncStart !== 0) {
     startIndex = arrayBinarySearch.findIndexOfClosestSmallerOrEqual(offsetTree, syncStart - 1, indexComparator)
-    const offsetInfo = offsetTree[startIndex]
+    const offsetInfo = offsetTree[startIndex]!
     prevOffset = offsetInfo.offset
     const kv = findMaxKeyValue(sizeTree, syncStart - 1)
     prevIndex = kv[0]
     prevSize = kv[1]!
 
-    if (offsetTree.length && offsetTree[startIndex].size === findMaxKeyValue(sizeTree, syncStart)[1]) {
+    if (offsetTree.length && offsetTree[startIndex]!.size === findMaxKeyValue(sizeTree, syncStart)[1]) {
       startIndex -= 1
     }
 
@@ -300,6 +301,8 @@ export const sizeSystem = u.system(
 
     const fixedItemSize = u.statefulStream<OptionalNumber>(undefined)
     const defaultItemSize = u.statefulStream<OptionalNumber>(undefined)
+    const fixedGroupSize = u.statefulStream<OptionalNumber>(undefined)
+    const heightEstimates = u.statefulStream<number[] | undefined>(undefined)
     const itemSize = u.statefulStream<SizeFunction>((el, field) => correctItemSize(el, SIZE_MAP[field]))
     const data = u.statefulStream<Data>(undefined)
     const gap = u.statefulStream(0)
@@ -380,10 +383,98 @@ export const sizeSystem = u.system(
     u.connect(
       u.pipe(
         defaultItemSize,
-        u.filter((value) => {
-          return value !== undefined && empty(u.getValue(sizes).sizeTree)
+        u.filter((itemSize) => {
+          return itemSize !== undefined && empty(u.getValue(sizes).sizeTree)
         }),
-        u.map((size) => [{ endIndex: 0, size, startIndex: 0 }] as SizeRange[])
+        u.map((itemSize) => {
+          const groupSize = u.getValue(fixedGroupSize)
+          const hasGroups = u.getValue(groupIndices).length > 0
+
+          // send the fake probe sizes only if we have group counts - otherwise, leave the tree empty.
+          // this is necessary for the tree to be built correctly
+          if (groupSize !== undefined && groupSize !== 0) {
+            if (hasGroups) {
+              return [
+                { endIndex: 0, size: groupSize, startIndex: 0 },
+                { endIndex: 1, size: itemSize, startIndex: 1 },
+              ] as SizeRange[]
+            }
+            return []
+          }
+          return [{ endIndex: 0, size: itemSize, startIndex: 0 }] as SizeRange[]
+        })
+      ),
+      sizeRanges
+    )
+
+    // Handle heightEstimates - build individual size ranges for each item based on estimates
+    u.connect(
+      u.pipe(
+        heightEstimates,
+        u.filter((estimates) => {
+          return estimates !== undefined && estimates.length > 0 && empty(u.getValue(sizes).sizeTree)
+        }),
+        u.map((estimates) => {
+          const ranges: SizeRange[] = []
+          let currentSize = estimates![0]!
+          let startIndex = 0
+
+          // Build contiguous ranges where items have the same estimated size
+          for (let i = 1; i < estimates!.length; i++) {
+            const size = estimates![i]!
+            if (size !== currentSize) {
+              ranges.push({
+                endIndex: i - 1,
+                size: currentSize,
+                startIndex,
+              })
+              currentSize = size
+              startIndex = i
+            }
+          }
+
+          // Push the final range
+          ranges.push({
+            endIndex: estimates!.length - 1,
+            size: currentSize,
+            startIndex,
+          })
+
+          return ranges
+        })
+      ),
+      sizeRanges
+    )
+
+    // Rebuild size ranges when group counts changes and we have a fixed group & item size
+    u.connect(
+      u.pipe(
+        groupIndices,
+        u.withLatestFrom(fixedGroupSize, defaultItemSize),
+        u.filter(([, fixedGroupSize, defaultItemSize]) => fixedGroupSize !== undefined && defaultItemSize !== undefined),
+        u.map(([groupIndices, fixedGroupSize, defaultItemSize]) => {
+          // Build size ranges for all groups and items
+          const ranges: SizeRange[] = []
+          for (let i = 0; i < groupIndices.length; i++) {
+            const groupIndex = groupIndices[i]!
+            const nextGroupIndex = groupIndices[i + 1]
+            // Group header
+            ranges.push({
+              startIndex: groupIndex,
+              endIndex: groupIndex,
+              size: fixedGroupSize as number,
+            })
+            // Items in group
+            if (nextGroupIndex !== undefined) {
+              ranges.push({
+                startIndex: groupIndex + 1,
+                endIndex: nextGroupIndex - 1,
+                size: defaultItemSize as number,
+              })
+            }
+          }
+          return ranges
+        })
       ),
       sizeRanges
     )
@@ -460,9 +551,9 @@ export const sizeSystem = u.system(
             let groupIndex = 0
 
             while (prependedGroupItemsCount < unshiftWith) {
-              const theGroupIndex = sizes.groupIndices[groupIndex]
+              const theGroupIndex = sizes.groupIndices[groupIndex]!
               const groupItemCount =
-                sizes.groupIndices.length === groupIndex + 1 ? Infinity : sizes.groupIndices[groupIndex + 1] - theGroupIndex - 1
+                sizes.groupIndices.length === groupIndex + 1 ? Infinity : sizes.groupIndices[groupIndex + 1]! - theGroupIndex - 1
 
               initialRanges.push({
                 endIndex: theGroupIndex,
@@ -566,8 +657,8 @@ export const sizeSystem = u.system(
             let groupOffset = 0
 
             while (removedItemsCount < -shiftWith) {
-              groupOffset = prevGroupIndicesValue[groupIndex]
-              const groupItemCount = prevGroupIndicesValue[groupIndex + 1] - groupOffset - 1
+              groupOffset = prevGroupIndicesValue[groupIndex]!
+              const groupItemCount = prevGroupIndicesValue[groupIndex + 1]! - groupOffset - 1
               groupIndex++
               removedItemsCount += groupItemCount + 1
             }
@@ -591,16 +682,16 @@ export const sizeSystem = u.system(
               sizeTree: newSizeTree,
               ...createOffsetTree(sizes.offsetTree, 0, newSizeTree, gap),
             }
-          } else {
-            const newSizeTree = walk(sizes.sizeTree).reduce((acc, { k, v }) => {
-              return insert(acc, Math.max(0, k + shiftWith), v)
-            }, newTree<number>())
+          }
 
-            return {
-              ...sizes,
-              sizeTree: newSizeTree,
-              ...createOffsetTree(sizes.offsetTree, 0, newSizeTree, gap),
-            }
+          const newSizeTree = walk(sizes.sizeTree).reduce((acc, { k, v }) => {
+            return insert(acc, Math.max(0, k + shiftWith), v)
+          }, newTree<number>())
+
+          return {
+            ...sizes,
+            sizeTree: newSizeTree,
+            ...createOffsetTree(sizes.offsetTree, 0, newSizeTree, gap),
           }
         })
       ),
@@ -614,8 +705,10 @@ export const sizeSystem = u.system(
       defaultItemSize,
       firstItemIndex,
       fixedItemSize,
+      fixedGroupSize,
       gap,
       groupIndices,
+      heightEstimates,
       itemSize,
       listRefresh,
       shiftWith,

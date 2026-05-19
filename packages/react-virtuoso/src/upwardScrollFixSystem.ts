@@ -1,6 +1,5 @@
 import { find } from './AATree'
 import { domIOSystem } from './domIOSystem'
-import { ListItem } from './interfaces'
 import { listStateSystem } from './listStateSystem'
 import { loggerSystem, LogLevel } from './loggerSystem'
 import { recalcSystem } from './recalcSystem'
@@ -8,6 +7,8 @@ import { sizeSystem } from './sizeSystem'
 import { stateFlagsSystem, UP } from './stateFlagsSystem'
 import * as u from './urx'
 import { simpleMemoize } from './utils/simpleMemoize'
+
+import type { ListItem } from './interfaces'
 
 const isMobileSafari = simpleMemoize(() => {
   return /iP(ad|od|hone)/i.test(navigator.userAgent) && /WebKit/i.test(navigator.userAgent)
@@ -37,7 +38,7 @@ export const upwardScrollFixSystem = u.system(
             let newDev = 0
             if (prevTotalCount === totalCount) {
               if (prevItems.length > 0 && items.length > 0) {
-                const atStart = items[0].originalIndex === 0 && prevItems[0].originalIndex === 0
+                const atStart = items[0]!.originalIndex === 0 && prevItems[0]!.originalIndex === 0
                 if (!atStart) {
                   newDev = totalHeight - prevTotalHeight
                   if (newDev !== 0) {
@@ -113,33 +114,33 @@ export const upwardScrollFixSystem = u.system(
           }
           if (groupIndices.length === 0) {
             return getItemOffset(offset)
-          } else {
-            let amount = 0
-            const defaultGroupSize = find(sizeTree, 0)!
+          }
 
-            let recognizedOffsetItems = 0
-            let groupIndex = 0
-            while (recognizedOffsetItems < offset) {
-              // increase once for the group itself
-              recognizedOffsetItems++
-              amount += defaultGroupSize
+          let amount = 0
+          const defaultGroupSize = find(sizeTree, 0)!
 
-              let groupItemCount =
-                groupIndices.length === groupIndex + 1 ? Infinity : groupIndices[groupIndex + 1] - groupIndices[groupIndex] - 1
+          let recognizedOffsetItems = 0
+          let groupIndex = 0
+          while (recognizedOffsetItems < offset) {
+            // increase once for the group itself
+            recognizedOffsetItems++
+            amount += defaultGroupSize
 
-              // if the group is larger than the offset, we have an expanded group. remove the group size, and replace with 1 item.
-              if (recognizedOffsetItems + groupItemCount > offset) {
-                amount -= defaultGroupSize
-                groupItemCount = offset - recognizedOffsetItems + 1
-              }
+            let groupItemCount =
+              groupIndices.length === groupIndex + 1 ? Infinity : groupIndices[groupIndex + 1]! - groupIndices[groupIndex]! - 1
 
-              recognizedOffsetItems += groupItemCount
-              amount += getItemOffset(groupItemCount)
-              groupIndex++
+            // if the group is larger than the offset, we have an expanded group. remove the group size, and replace with 1 item.
+            if (recognizedOffsetItems + groupItemCount > offset) {
+              amount -= defaultGroupSize
+              groupItemCount = offset - recognizedOffsetItems + 1
             }
 
-            return amount
+            recognizedOffsetItems += groupItemCount
+            amount += getItemOffset(groupItemCount)
+            groupIndex++
           }
+
+          return amount
         })
       ),
       (offset) => {

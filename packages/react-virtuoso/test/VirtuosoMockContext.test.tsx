@@ -39,6 +39,16 @@ describe('VirtuosoMockContext', () => {
 
       expect(container).toMatchSnapshot()
     })
+
+    it('offsets the window viewport by the sticky top items height', () => {
+      const { container } = render(<Virtuoso data={data} topItemCount={2} useWindowScroll />, {
+        wrapper: ({ children }) => (
+          <VirtuosoMockContext.Provider value={{ itemHeight: 100, viewportHeight: 300 }}>{children}</VirtuosoMockContext.Provider>
+        ),
+      })
+
+      expect(container).toMatchSnapshot()
+    })
   })
 
   describe('Table', () => {

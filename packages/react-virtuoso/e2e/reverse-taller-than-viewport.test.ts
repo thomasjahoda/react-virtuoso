@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test'
 
-//@ts-expect-error - type module and playwright
 import { navigateToExample } from './utils.ts'
 
 const DEFAULT_ITEM_HEIGHT = 35

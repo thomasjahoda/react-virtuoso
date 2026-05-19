@@ -1,15 +1,31 @@
 import React from 'react'
 
+import useChangedListContentsSizes from './hooks/useChangedChildSizes'
+import useSize from './hooks/useSize'
+import useWindowViewportRectRef from './hooks/useWindowViewportRect'
+import { listSystem } from './listSystem'
+import { systemToComponent } from './react-urx'
+import * as u from './urx'
+import { VirtuosoMockContext } from './utils/context'
+import { correctItemSize } from './utils/correctItemSize'
+import { positionStickyCssValue } from './utils/positionStickyCssValue'
 import {
+  buildScroller,
+  buildWindowScroller,
+  contextPropIfNotDomElement,
+  identity,
+  itemPropIfNotDomElement,
+  viewportStyle,
+  windowViewportStyle,
+} from './Virtuoso'
+
+import type {
   GroupedTableVirtuosoHandle,
   GroupedTableVirtuosoProps,
   TableVirtuosoHandle,
   TableVirtuosoProps,
 } from './component-interfaces/TableVirtuoso'
-import useChangedListContentsSizes from './hooks/useChangedChildSizes'
-import useSize from './hooks/useSize'
-import useWindowViewportRectRef from './hooks/useWindowViewportRect'
-import {
+import type {
   ComputeItemKey,
   FixedFooterContent,
   FixedHeaderContent,
@@ -19,20 +35,6 @@ import {
   TableComponents,
   TableRootProps,
 } from './interfaces'
-import { listSystem } from './listSystem'
-import { systemToComponent } from './react-urx'
-import * as u from './urx'
-import { VirtuosoMockContext } from './utils/context'
-import { correctItemSize } from './utils/correctItemSize'
-import {
-  buildScroller,
-  buildWindowScroller,
-  contextPropIfNotDomElement,
-  identity,
-  itemPropIfNotDomElement,
-  viewportStyle,
-} from './Virtuoso'
-import { positionStickyCssValue } from './utils/positionStickyCssValue'
 
 const tableComponentPropsSystem = /*#__PURE__*/ u.system(() => {
   const itemContent = u.statefulStream<ItemContent<any, unknown>>((index: number) => <td>Item ${index}</td>)
@@ -89,13 +91,13 @@ const combinedSystem = /*#__PURE__*/ u.system(
 
 const DefaultScrollSeekPlaceholder = ({ height }: { height: number }) => (
   <tr>
-    <td style={{ height }}></td>
+    <td style={{ height }} />
   </tr>
 )
 
 const DefaultFillerRow = ({ height }: { height: number }) => (
   <tr>
-    <td style={{ border: 0, height: height, padding: 0 }}></td>
+    <td style={{ border: 0, height: height, padding: 0 }} />
   </tr>
 )
 
@@ -114,7 +116,7 @@ const Items = /*#__PURE__*/ React.memo(function VirtuosoItems({ showTopList = fa
   const itemContent = useEmitterValue('itemContent')
   const groupContent = useEmitterValue('groupContent')
 
-  const ScrollSeekPlaceholder = useEmitterValue('ScrollSeekPlaceholder') || DefaultScrollSeekPlaceholder
+  const ScrollSeekPlaceholder = useEmitterValue('ScrollSeekPlaceholder') ?? DefaultScrollSeekPlaceholder
   const GroupComponent = useEmitterValue('GroupComponent')!
   const TableRowComponent = useEmitterValue('TableRowComponent')!
 
@@ -122,7 +124,7 @@ const Items = /*#__PURE__*/ React.memo(function VirtuosoItems({ showTopList = fa
     if (index === 0) {
       acc.push(item.size)
     } else {
-      acc.push(acc[index - 1] + item.size)
+      acc.push(acc[index - 1]! + item.size)
     }
     return acc
   }, [])
@@ -169,7 +171,7 @@ const Items = /*#__PURE__*/ React.memo(function VirtuosoItems({ showTopList = fa
         data-known-size={item.size}
         data-item-group-index={item.groupIndex}
         key={key}
-        style={showTopList ? { ...STICKY_ITEM_STYLE, top: fixedHeaderHeight + offsetTop } : ITEM_STYLE}
+        style={showTopList ? { ...STICKY_ITEM_STYLE, top: fixedHeaderHeight + offsetTop! } : ITEM_STYLE}
       >
         {hasGroups
           ? (itemContent as GroupItemContent<any, any>)(item.index, item.groupIndex!, item.data, context)
@@ -178,7 +180,7 @@ const Items = /*#__PURE__*/ React.memo(function VirtuosoItems({ showTopList = fa
     )
   })
 
-  return <>{items}</>
+  return items
 })
 
 const TableBody = /*#__PURE__*/ React.memo(function TableVirtuosoBody() {
@@ -215,13 +217,13 @@ const TableBody = /*#__PURE__*/ React.memo(function TableVirtuosoBody() {
     }
   })
   const EmptyPlaceholder = useEmitterValue('EmptyPlaceholder')
-  const FillerRow = useEmitterValue('FillerRow') || DefaultFillerRow
+  const FillerRow = useEmitterValue('FillerRow') ?? DefaultFillerRow
   const TableBodyComponent = useEmitterValue('TableBodyComponent')!
   const paddingTopAddition = useEmitterValue('paddingTopAddition')
   const statefulTotalCount = useEmitterValue('statefulTotalCount')
   const context = useEmitterValue('context')
 
-  if (statefulTotalCount === 0 && EmptyPlaceholder) {
+  if (statefulTotalCount === 0 && EmptyPlaceholder !== null && EmptyPlaceholder !== undefined) {
     return <EmptyPlaceholder {...contextPropIfNotDomElement(EmptyPlaceholder, context)} />
   }
 
@@ -274,6 +276,7 @@ const WindowViewport: React.FC<React.PropsWithChildren> = ({ children }) => {
   const rawWindowViewportRect = usePublisher('rawWindowViewportRect')
   const fixedItemHeight = usePublisher('fixedItemHeight')
   const customScrollParent = useEmitterValue('customScrollParent')
+  const useWindowScroll = useEmitterValue('useWindowScroll')
   const viewportRef = useWindowViewportRectRef(
     rawWindowViewportRect,
     customScrollParent,
@@ -283,12 +286,12 @@ const WindowViewport: React.FC<React.PropsWithChildren> = ({ children }) => {
   React.useEffect(() => {
     if (ctx) {
       fixedItemHeight(ctx.itemHeight)
-      rawWindowViewportRect({ offsetTop: 0, visibleHeight: ctx.viewportHeight, visibleWidth: 100 })
+      rawWindowViewportRect({ listHeight: 0, offsetTop: 0, visibleHeight: ctx.viewportHeight, visibleWidth: 100 })
     }
   }, [ctx, rawWindowViewportRect, fixedItemHeight])
 
   return (
-    <div data-viewport-type="window" ref={viewportRef} style={viewportStyle(false)}>
+    <div data-viewport-type="window" ref={viewportRef} style={windowViewportStyle(false, useWindowScroll)}>
       {children}
     </div>
   )
@@ -314,11 +317,8 @@ const TableRoot: React.FC<TableRootProps> = /*#__PURE__*/ React.memo(function Ta
   )
   const TheScroller = customScrollParent || useWindowScroll ? WindowScroller : Scroller
   const TheViewport = customScrollParent || useWindowScroll ? WindowViewport : Viewport
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unnecessary-type-assertion
   const TheTable = useEmitterValue('TableComponent') as any
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unnecessary-type-assertion
   const TheTHead = useEmitterValue('TableHeadComponent') as any
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unnecessary-type-assertion
   const TheTFoot = useEmitterValue('TableFooterComponent') as any
 
   const theHead = fixedHeaderContent ? (
@@ -363,7 +363,6 @@ const {
 } = /*#__PURE__*/ systemToComponent(
   combinedSystem,
   {
-    required: {},
     optional: {
       restoreStateFrom: 'restoreStateFrom',
       context: 'context',
@@ -375,6 +374,7 @@ const {
       fixedFooterContent: 'fixedFooterContent',
       overscan: 'overscan',
       increaseViewportBy: 'increaseViewportBy',
+      minOverscanItemCount: 'minOverscanItemCount',
       totalCount: 'totalCount',
       topItemCount: 'topItemCount',
       initialTopMostItemIndex: 'initialTopMostItemIndex',
@@ -385,6 +385,7 @@ const {
       atTopThreshold: 'atTopThreshold',
       computeItemKey: 'computeItemKey',
       defaultItemHeight: 'defaultItemHeight',
+      fixedGroupHeight: 'fixedGroupHeight', // Must be set above 'fixedItemHeight'
       fixedItemHeight: 'fixedItemHeight',
       itemSize: 'itemSize',
       scrollSeekConfiguration: 'scrollSeekConfiguration',
@@ -422,10 +423,76 @@ const {
 const Scroller = /*#__PURE__*/ buildScroller({ useEmitter, useEmitterValue, usePublisher })
 const WindowScroller = /*#__PURE__*/ buildWindowScroller({ useEmitter, useEmitterValue, usePublisher })
 
+/**
+ * A virtualized table component for efficiently rendering large tabular datasets.
+ * Renders semantic HTML table markup with support for fixed headers and footers.
+ *
+ * @typeParam ItemData - The type of data items in the table
+ * @typeParam Context - The type of additional context passed to callbacks
+ *
+ * @param props - {@link TableVirtuosoProps}
+ *
+ * @function
+ * @group TableVirtuoso
+ *
+ * @example
+ * ```tsx
+ * <TableVirtuoso
+ *   totalCount={1000}
+ *   fixedHeaderContent={() => (
+ *     <tr>
+ *       <th>Name</th>
+ *       <th>Description</th>
+ *     </tr>
+ *   )}
+ *   itemContent={(index) => (
+ *     <>
+ *       <td>Item {index}</td>
+ *       <td>Description {index}</td>
+ *     </>
+ *   )}
+ * />
+ * ```
+ *
+ * @see {@link TableVirtuosoProps} for available props
+ * @see {@link TableVirtuosoHandle} for imperative methods
+ * @see {@link TableComponents} for customizing table elements
+ */
 export const TableVirtuoso = Table as <ItemData = any, Context = any>(
   props: TableVirtuosoProps<ItemData, Context> & { ref?: React.Ref<TableVirtuosoHandle> }
 ) => React.ReactElement
 
-export const GroupedTableVirtuoso = Table as <ItemData = any, Context = any>(
+/**
+ * A virtualized table component for rendering grouped tabular data with sticky group headers.
+ * Combines TableVirtuoso functionality with group support for hierarchical data.
+ *
+ * @typeParam ItemData - The type of data items in the table
+ * @typeParam Context - The type of additional context passed to callbacks
+ *
+ * @param props - {@link GroupedTableVirtuosoProps}
+ *
+ * @function
+ * @group GroupedTableVirtuoso
+ *
+ * @example
+ * ```tsx
+ * <GroupedTableVirtuoso
+ *   groupCounts={[10, 20, 15]}
+ *   groupContent={(index) => (
+ *     <td colSpan={2}>Group {index}</td>
+ *   )}
+ *   itemContent={(index, groupIndex) => (
+ *     <>
+ *       <td>Item {index}</td>
+ *       <td>Group {groupIndex}</td>
+ *     </>
+ *   )}
+ * />
+ * ```
+ *
+ * @see {@link GroupedTableVirtuosoProps} for available props
+ * @see {@link GroupedTableVirtuosoHandle} for imperative methods
+ */
+export const GroupedTableVirtuoso = Table as unknown as <ItemData = any, Context = any>(
   props: GroupedTableVirtuosoProps<ItemData, Context> & { ref?: React.Ref<GroupedTableVirtuosoHandle> }
 ) => React.ReactElement

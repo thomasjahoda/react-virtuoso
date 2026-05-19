@@ -1,5 +1,6 @@
-import { faker } from '@faker-js/faker'
 import { useCallback, useState } from 'react'
+
+import { faker } from '@faker-js/faker'
 
 import { Virtuoso } from '../src'
 
@@ -25,7 +26,7 @@ export function user(index = 0) {
 }
 
 export const getUser = (index: number) => {
-  if (!generated[index]) {
+  if (generated[index] === undefined) {
     generated[index] = user(index)
   }
 

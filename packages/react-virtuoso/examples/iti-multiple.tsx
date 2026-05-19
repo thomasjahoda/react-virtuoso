@@ -17,7 +17,7 @@ export function App() {
               data={data}
               //initialScrollTop={200}
               initialTopMostItemIndex={5}
-              itemContent={(_, i) => <div style={{ backgroundColor: i == 0 ? 'red' : 'transparent' }}>{i}</div>}
+              itemContent={(_, i) => <div style={{ backgroundColor: i === 0 ? 'red' : 'transparent' }}>{i}</div>}
               key={i}
               style={{
                 border: '2px black solid',
@@ -33,20 +33,18 @@ export function App() {
 
 export function Example() {
   return (
-    <>
-      <div style={{ display: 'flex', flexDirection: 'row', height: 400 }}>
-        {Array.from({ length: 30 }).map((_, key) => {
-          return (
-            <Virtuoso
-              initialTopMostItemIndex={20}
-              itemContent={itemContent}
-              key={key}
-              style={{ flex: 1, fontSize: '7px', height: 300, minWidth: '3rem' }}
-              totalCount={100}
-            />
-          )
-        })}
-      </div>
-    </>
+    <div style={{ display: 'flex', flexDirection: 'row', height: 400 }}>
+      {Array.from({ length: 30 }).map((_, key) => {
+        return (
+          <Virtuoso
+            initialTopMostItemIndex={20}
+            itemContent={itemContent}
+            key={key}
+            style={{ flex: 1, fontSize: '7px', height: 300, minWidth: '3rem' }}
+            totalCount={100}
+          />
+        )
+      })}
+    </div>
   )
 }

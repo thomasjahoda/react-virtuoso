@@ -12,9 +12,9 @@ export function Example() {
           <div style={{}}>Item {index}</div>
           <button
             onClick={() => {
-              setToggle((map) => ({ ...map, [index]: !map[index] }))
+              setToggle((map) => ({ ...map, [index]: !(map[index] ?? false) }))
             }}
-            style={{ height: toggle[index] ? 100 : 50 }}
+            style={{ height: (toggle[index] ?? false) ? 100 : 50 }}
           >
             Toggle
           </button>
@@ -26,7 +26,7 @@ export function Example() {
 
   const toggleSize = React.useCallback(
     (index: number) => {
-      setToggle((toggle) => ({ ...toggle, [index]: !toggle[index] }))
+      setToggle((toggle) => ({ ...toggle, [index]: !(toggle[index] ?? false) }))
     },
     [setToggle]
   )

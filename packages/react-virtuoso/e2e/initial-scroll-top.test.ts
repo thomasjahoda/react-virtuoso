@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test'
 
-//@ts-expect-error - type module and playwright
 import { navigateToExample } from './utils.ts'
 
 test.describe('initial scroll top', () => {
@@ -12,7 +11,7 @@ test.describe('initial scroll top', () => {
     await page.waitForTimeout(100)
     const scrollTop = await page.evaluate(() => {
       const scroller = document.querySelectorAll('[data-testid=virtuoso-scroller]')[0]
-      return scroller.scrollTop
+      return scroller!.scrollTop
     })
 
     expect(scrollTop).toBe(50)

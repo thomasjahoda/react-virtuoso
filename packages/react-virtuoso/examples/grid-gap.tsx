@@ -1,7 +1,10 @@
-import styled from '@emotion/styled'
 import * as React from 'react'
 
-import { GridComponents, VirtuosoGrid, VirtuosoGridHandle } from '../src'
+import styled from '@emotion/styled'
+
+import { VirtuosoGrid } from '../src'
+
+import type { GridComponents, VirtuosoGridHandle } from '../src'
 
 const ItemContainer = styled.div`
   box-sizing: border-box;
@@ -38,7 +41,7 @@ const ListContainer = styled.div`
   flex-wrap: wrap;
   row-gap: 20px;
   column-gap: 20px;
-` as GridComponents['List']
+` as NonNullable<GridComponents['List']>
 
 export function Example() {
   const ref = React.createRef<VirtuosoGridHandle>()

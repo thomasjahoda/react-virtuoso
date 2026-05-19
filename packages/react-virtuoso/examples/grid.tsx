@@ -1,7 +1,10 @@
-import styled from '@emotion/styled'
 import * as React from 'react'
 
-import { GridComponents, LogLevel, VirtuosoGrid, VirtuosoGridHandle } from '../src'
+import styled from '@emotion/styled'
+
+import { LogLevel, VirtuosoGrid } from '../src'
+
+import type { GridComponents, VirtuosoGridHandle } from '../src'
 
 const ItemContainer = styled.div`
   box-sizing: border-box;
@@ -38,7 +41,7 @@ const ItemWrapper = styled.div`
 const ListContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
-` as GridComponents['List']
+` as NonNullable<GridComponents['List']>
 
 export function Example() {
   const ref = React.createRef<VirtuosoGridHandle>()
@@ -99,20 +102,18 @@ export function ReadyStateChanged() {
   const [gridVisible, setGridVisible] = React.useState(false)
 
   return (
-    <>
-      <VirtuosoGrid
-        components={{
-          Item: ItemContainer,
-          List: ListContainer,
-        }}
-        itemContent={(index) => <ItemWrapper>Item {index}</ItemWrapper>}
-        readyStateChanged={(value) => {
-          setGridVisible(value)
-        }}
-        ref={ref}
-        style={{ height: 300, visibility: gridVisible ? 'visible' : 'hidden', width: 1200 }}
-        totalCount={100}
-      />
-    </>
+    <VirtuosoGrid
+      components={{
+        Item: ItemContainer,
+        List: ListContainer,
+      }}
+      itemContent={(index) => <ItemWrapper>Item {index}</ItemWrapper>}
+      readyStateChanged={(value) => {
+        setGridVisible(value)
+      }}
+      ref={ref}
+      style={{ height: 300, visibility: gridVisible ? 'visible' : 'hidden', width: 1200 }}
+      totalCount={100}
+    />
   )
 }

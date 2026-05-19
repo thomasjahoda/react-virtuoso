@@ -12,9 +12,9 @@ export function Example() {
           <div>Item {index}</div>
           <button
             onClick={() => {
-              setToggle((map) => ({ ...map, [index]: !map[index] }))
+              setToggle((map) => ({ ...map, [index]: !(map[index] ?? false) }))
             }}
-            style={{ height: toggle[index] ? 100 : 50 }}
+            style={{ height: (toggle[index] ?? false) ? 100 : 50 }}
           >
             Toggle
           </button>
@@ -27,13 +27,13 @@ export function Example() {
     <div>
       <button
         onClick={() => {
-          setToggle((toggle) => ({ ...toggle, 88: !toggle[88] }))
-          setToggle((toggle) => ({ ...toggle, 99: !toggle[99] }))
+          setToggle((toggle) => ({ ...toggle, 88: !(toggle[88] ?? false) }))
+          setToggle((toggle) => ({ ...toggle, 99: !(toggle[99] ?? false) }))
 
           setTimeout(() => {
-            setToggle((toggle) => ({ ...toggle, 99: !toggle[99] }))
+            setToggle((toggle) => ({ ...toggle, 99: !(toggle[99] ?? false) }))
             setTimeout(() => {
-              setToggle((toggle) => ({ ...toggle, 88: !toggle[88] }))
+              setToggle((toggle) => ({ ...toggle, 88: !(toggle[88] ?? false) }))
               // setCount((count) => count + 1)
             })
           }, 500)

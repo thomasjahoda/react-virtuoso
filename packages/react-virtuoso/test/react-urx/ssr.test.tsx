@@ -1,5 +1,6 @@
-import { JSDOM } from 'jsdom'
 import * as React from 'react'
+
+import { JSDOM } from 'jsdom'
 import ReactDOMServer from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 

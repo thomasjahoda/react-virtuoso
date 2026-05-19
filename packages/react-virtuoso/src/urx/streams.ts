@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 /**
  * Streams are the basic building blocks of a reactive system. Think of them as the system permanent "data tubes".
  *
@@ -34,9 +32,11 @@
  * @packageDocumentation
  */
 
-import { connect, Emitter, StatefulStream, Stream, subscribe, Subscription, Unsubscribe } from './actions'
+import { connect, subscribe } from './actions'
 import { PUBLISH, RESET, SUBSCRIBE, VALUE } from './constants'
 import { noop, tap } from './utils'
+
+import type { Emitter, StatefulStream, Stream, Subscription, Unsubscribe } from './actions'
 
 /**
  * Event handlers are special emitters which can have **at most one active subscription**.
@@ -72,14 +72,13 @@ export function eventHandler<T>(emitter: Emitter<T>) {
           currentSubscription = subscription
           unsub = subscribe(emitter, subscription)
           return unsub
-        } else {
-          cleanup()
-          return noop
         }
+        cleanup()
+        return noop
       case RESET:
         cleanup()
         currentSubscription = null
-        return
+        return undefined
     }
   } as Emitter<T>
 }
@@ -111,7 +110,6 @@ export function statefulStream<T>(initial: T): StatefulStream<T> {
       case VALUE:
         return value
     }
-    // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
     return innerSubject(action as any, arg)
   }) as StatefulStream<T>
 }

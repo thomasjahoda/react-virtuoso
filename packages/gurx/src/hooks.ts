@@ -1,8 +1,8 @@
 import * as React from 'react'
 
-import type { Inp, NodeRef, Out, PipeRef } from './realm'
-
 import { RealmContext } from './react'
+
+import type { Inp, NodeRef, Out, PipeRef } from './realm'
 
 const useIsomorphicLayoutEffect = typeof document !== 'undefined' ? React.useLayoutEffect : React.useEffect
 
@@ -25,12 +25,9 @@ function useCellValueWithStore<T>(cell: Out<T>): T {
   realm.register(cell)
 
   const cb = React.useCallback((c: () => void) => realm.sub(cell, c), [realm, cell])
+  const getSnapshot = React.useCallback(() => realm.getValue(cell), [realm, cell])
 
-  return React.useSyncExternalStore(
-    cb,
-    () => realm.getValue(cell),
-    () => realm.getValue(cell)
-  )
+  return React.useSyncExternalStore(cb, getSnapshot, getSnapshot)
 }
 
 function useCellValueWithState<T>(cell: Out<T>): T {
@@ -53,7 +50,7 @@ function useCellValueWithState<T>(cell: Out<T>): T {
 /**
  * Gets the current value of the cell. The component is re-rendered when the cell value changes.
  *
- * @remark If you need the values of multiple nodes from the realm and those nodes might change in the same computiation, you can `useCellValues` to reduce re-renders.
+ * @remarks If you need the values of multiple nodes from the realm and those nodes might change in the same computation, you can `useCellValues` to reduce re-renders.
  *
  * @returns The current value of the cell.
  * @typeParam T - the type of the value that the cell caries.
@@ -119,8 +116,14 @@ export function useCellValues<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
 ): [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13] // prettier-ignore
 export function useCellValues(...cells: Out[]): unknown[] {
   const realm = useRealm()
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, prefer-spread, @typescript-eslint/no-explicit-any
-  return useCellValue(realm.combineCells.apply(realm, cells as any))
+
+  const combinedCell = React.useMemo(() => {
+    // @ts-expect-error Cannot use a rest parameter as an argument.
+    return realm.combineCells(...(cells as unknown[]))
+    // oxlint-disable-next-line exhaustive-deps
+  }, [realm, ...cells])
+
+  return useCellValue(combinedCell)
 }
 
 /**
@@ -159,7 +162,9 @@ export function usePublisher<T>(node: Inp<T>) {
  * @returns A tuple of the current value of the cell and a publisher function.
  * @category Hooks
  */
+export function useCell<T>(cell: NodeRef<T>): [T, (value: T) => void]
+export function useCell<I, O>(cell: PipeRef<I, O>): [O, (value: I) => void]
 export function useCell<O, I = O>(cell: NodeRef<O> | PipeRef<I, O>): [O, (value: I) => void] {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-  return [useCellValue<O>(cell), usePublisher<I>(cell as any)]
+  // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
+  return [useCellValue<O>(cell), usePublisher<I>(cell as Inp<I>)]
 }

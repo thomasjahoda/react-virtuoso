@@ -1,13 +1,15 @@
 import { tupleComparator } from './comparators'
 import { domIOSystem } from './domIOSystem'
-import { DOWN, ScrollDirection, UP } from './stateFlagsSystem'
+import { DOWN, UP } from './stateFlagsSystem'
 import * as u from './urx'
+
+import type { ScrollDirection } from './stateFlagsSystem'
 
 export type NumberTuple = [number, number]
 export type Overscan = number | { main: number; reverse: number }
 export const TOP = 'top'
 export const BOTTOM = 'bottom'
-export const NONE = 'none'
+const NONE = 'none'
 export type ChangeDirection = typeof DOWN | typeof NONE | typeof UP
 export type ListEnd = typeof BOTTOM | typeof TOP
 export type ViewportIncrease = number | Partial<Record<ListEnd, number>>
@@ -15,13 +17,11 @@ export type ViewportIncrease = number | Partial<Record<ListEnd, number>>
 export function getOverscan(overscan: Overscan, end: ListEnd, direction: ScrollDirection) {
   if (typeof overscan === 'number') {
     return (direction === UP && end === TOP) || (direction === DOWN && end === BOTTOM) ? overscan : 0
-  } else {
-    if (direction === UP) {
-      return end === TOP ? overscan.main : overscan.reverse
-    } else {
-      return end === BOTTOM ? overscan.main : overscan.reverse
-    }
   }
+  if (direction === UP) {
+    return end === TOP ? overscan.main : overscan.reverse
+  }
+  return end === BOTTOM ? overscan.main : overscan.reverse
 }
 
 function getViewportIncrease(value: ViewportIncrease, end: ListEnd) {
@@ -95,7 +95,7 @@ export const sizeRangeSystem = u.system(
             return null
           }
         ),
-        u.filter((value) => value != null) as u.Operator<null | NumberTuple, NumberTuple>,
+        u.filter((value) => value !== null) as u.Operator<null | NumberTuple, NumberTuple>,
         u.distinctUntilChanged(tupleComparator)
       ),
       [0, 0]

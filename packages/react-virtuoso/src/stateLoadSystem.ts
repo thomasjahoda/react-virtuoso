@@ -1,10 +1,11 @@
 import { domIOSystem } from './domIOSystem'
 import { initialTopMostItemIndexSystem } from './initialTopMostItemIndexSystem'
-import { ScrollContainerState, StateCallback, StateSnapshot, WindowViewportInfo } from './interfaces'
 import { propsReadySystem } from './propsReadySystem'
 import { sizeSystem, sizeTreeToRanges } from './sizeSystem'
 import * as u from './urx'
 import { windowScrollerSystem } from './windowScrollerSystem'
+
+import type { ScrollContainerState, StateCallback, StateSnapshot, WindowViewportInfo } from './interfaces'
 
 export const stateLoadSystem = u.system(
   ([

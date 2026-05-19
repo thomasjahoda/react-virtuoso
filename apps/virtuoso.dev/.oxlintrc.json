@@ -1,0 +1,32 @@
+{
+  "$schema": "../../node_modules/oxlint/configuration_schema.json",
+  "extends": ["../../.oxlintrc.json"],
+  "rules": {
+    "no-console": "off",
+    "no-loop-func": "off",
+    "no-new-func": "off",
+    "prefer-template": "off",
+    "max-classes-per-file": "off",
+    "react/jsx-curly-brace-presence": "off",
+    "react/iframe-missing-sandbox": "off",
+    "import/first": "off",
+    "import/no-named-as-default": "off",
+    "import/no-named-as-default-member": "off",
+    "typescript/no-unsafe-member-access": "off",
+    "typescript/no-unsafe-call": "off",
+    "typescript/no-unsafe-assignment": "off",
+    "typescript/no-misused-promises": "off",
+    "typescript/restrict-template-expressions": "off",
+    "typescript/no-implied-eval": "off",
+    "import/no-nodejs-modules": "off"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.astro"],
+      "rules": {
+        "typescript/no-unused-vars": "off",
+        "import/no-unused-modules": "off"
+      }
+    }
+  ]
+}

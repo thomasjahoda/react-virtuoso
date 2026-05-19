@@ -6,30 +6,31 @@ import type { NodeRef, Out, Realm } from './realm'
  * @typeParam Out - The type of values that the resulting node will emit.
  * @category Operators
  */
-export type Operator<I, O> = (source: Out<I>, realm: Realm) => NodeRef<O>
+export type Operator<I, R> = (source: Out<I>, realm: Realm) => NodeRef<R>
 
 /**
  * Shorter alias for {@link Operator}, to avoid extra long type signatures.
  * @category Operators
  */
-export type O<In, Out> = Operator<In, Out>
+export type O<In, Result> = Operator<In, Result>
 
 /**
  * Maps a the passed value with a projection function.
  * @category Operators
  */
-export function map<I, O>(mapFunction: (value: I) => O) {
+export function map<I, R>(mapFunction: (value: I) => R) {
   return ((source, r) => {
-    const sink = r.signalInstance<O>()
+    const sink = r.signalInstance<R>()
     r.connect({
       map: (done) => (value) => {
+        // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
         done(mapFunction(value as I))
       },
       sink,
       sources: [source],
     })
     return sink
-  }) as Operator<I, O>
+  }) as Operator<I, R>
 }
 
 /**
@@ -69,6 +70,7 @@ export function withLatestFrom<I>(...nodes: Out[]) {
       sources: [source],
     })
     return sink
+    // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
   }) as Operator<I, unknown[]>
 }
 
@@ -76,9 +78,9 @@ export function withLatestFrom<I>(...nodes: Out[]) {
  * Operator that maps the output of a node to a fixed value.
  * @category Operators
  */
-export function mapTo<I, O>(value: O): Operator<I, O> {
+export function mapTo<I, R>(value: R): Operator<I, R> {
   return (source, r) => {
-    const sink = r.signalInstance<O>()
+    const sink = r.signalInstance<R>()
     r.connect({
       map: (done) => () => {
         done(value)
@@ -95,11 +97,12 @@ export function mapTo<I, O>(value: O): Operator<I, O> {
  * If the predicate returns false, the emission is canceled.
  * @category Operators
  */
-export function filter<I, O = I>(predicate: (value: I) => boolean): Operator<I, O> {
+export function filter<I, R = I>(predicate: (value: I) => boolean): Operator<I, R> {
   return (source, r) => {
-    const sink = r.signalInstance<O>()
+    const sink = r.signalInstance<R>()
     r.connect({
       map: (done) => (value) => {
+        // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
         if (predicate(value as I)) {
           done(value)
         }
@@ -140,13 +143,12 @@ export function once<I>(): Operator<I, I> {
  * Works like the {@link https://rxjs.dev/api/operators/scan | RxJS scan operator}.
  * @category Operators
  */
-export function scan<I, O>(accumulator: (current: O, value: I) => O, seed: O): Operator<I, O> {
+export function scan<I, R>(accumulator: (current: R, value: I) => R, seed: R): Operator<I, R> {
   return (source, r) => {
-    const sink = r.signalInstance<O>()
+    const sink = r.signalInstance<R>()
     r.connect({
       map: (done) => (value) => {
-        // biome-ignore lint/style/noParameterAssign: this saves space
-        // biome-ignore lint/suspicious/noAssignInExpressions: this saves space
+        // oxlint-disable-next-line typescript-eslint(no-unsafe-type-assertion)
         done((seed = accumulator(seed, value as I)))
       },
       sink,
@@ -229,9 +231,9 @@ export function delayWithMicrotask<I>(): Operator<I, I> {
  * description Buffers the stream of a node until the passed note emits.
  * @category Operators
  */
-export function onNext<I, O>(bufNode: NodeRef<O>): Operator<I, [I, O]> {
+export function onNext<I, R>(bufNode: NodeRef<R>): Operator<I, [I, R]> {
   return (source, r) => {
-    const sink = r.signalInstance<[I, O]>()
+    const sink = r.signalInstance<[I, R]>()
     const bufferValue = Symbol()
     let pendingValue: I | typeof bufferValue = bufferValue
     r.connect({
@@ -266,9 +268,8 @@ export function handlePromise<I, OutSuccess, OnLoad, OutError>(
       if (value !== null && typeof value === 'object' && 'then' in value) {
         r.pub(sink, onLoad())
         value
-          .then((value) => {
-            r.pub(sink, onSuccess(value))
-            return
+          .then((resolved) => {
+            r.pub(sink, onSuccess(resolved))
           })
           .catch((error: unknown) => {
             r.pub(sink, onError(error))

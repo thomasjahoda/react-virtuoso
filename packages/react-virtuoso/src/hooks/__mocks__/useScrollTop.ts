@@ -1,4 +1,4 @@
-import { ScrollContainerState } from '../../interfaces'
+import type { ScrollContainerState } from '../../interfaces'
 
 type CallbackRefParam = HTMLElement | null
 

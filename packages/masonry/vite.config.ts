@@ -1,8 +1,8 @@
-import react from '@vitejs/plugin-react-swc'
 import { resolve } from 'node:path'
-/// <reference types="vitest" />
-import { defineConfig } from 'vite'
+
+import react from '@vitejs/plugin-react'
 import dts from 'vite-plugin-dts'
+import { defineConfig } from 'vitest/config'
 
 const inLadle = process.env.LADLE === 'true'
 
@@ -16,6 +16,7 @@ export default inLadle
     })
   : defineConfig({
       build: {
+        target: 'es2022',
         lib: {
           entry: resolve(__dirname, 'src/index.ts'),
           fileName: 'index',

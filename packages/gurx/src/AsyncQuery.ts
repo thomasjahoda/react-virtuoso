@@ -1,4 +1,6 @@
-import { Pipe, type PipeRef } from './realm'
+import { Pipe } from './realm'
+
+import type { PipeRef } from './realm'
 
 interface QueryLoadingResult {
   data: null

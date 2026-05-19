@@ -43,8 +43,8 @@ describe('gurx cells/signals', () => {
 
   it('supports init function for cells', () => {
     const a = Cell(2)
-    const b = Cell(2, (r) => {
-      r.link(b, a)
+    const b = Cell(2, (realm) => {
+      realm.link(b, a)
     })
     r.pub(b, 3)
     expect(r.getValue(a)).toEqual(3)
@@ -52,8 +52,8 @@ describe('gurx cells/signals', () => {
 
   it('supports init function for signals', () => {
     const a = Cell(2)
-    const b = Signal((r) => {
-      r.link(b, a)
+    const b = Signal((realm) => {
+      realm.link(b, a)
     })
     r.pub(b, 3)
     expect(r.getValue(a)).toEqual(3)
@@ -61,8 +61,8 @@ describe('gurx cells/signals', () => {
 
   it('supports init function for actions', () => {
     const a = Cell(2)
-    const b = Action((r) => {
-      r.pub(a, 3)
+    const b = Action((realm) => {
+      realm.pub(a, 3)
     })
     r.pub(b)
     expect(r.getValue(a)).toEqual(3)
@@ -153,8 +153,8 @@ describe('realm features', () => {
     })
 
     r.connect<[number, number]>({
-      map: (done) => (b, c) => {
-        done(b + c)
+      map: (done) => (bVal, cVal) => {
+        done(bVal + cVal)
       },
       sink: d,
       sources: [b, c],
@@ -269,8 +269,8 @@ describe('realm features', () => {
     })
 
     r.connect<[number, number]>({
-      map: (done) => (a, e) => {
-        done(a + e + 1)
+      map: (done) => (aVal, eVal) => {
+        done(aVal + eVal + 1)
       },
       pulls: [e],
       sink: f,
@@ -380,8 +380,8 @@ describe('realm features', () => {
     const c = Signal<number>()
 
     r.connect<[number, number]>({
-      map: (done) => (a, b) => {
-        done(a + b)
+      map: (done) => (aVal, bVal) => {
+        done(aVal + bVal)
       },
       sink: c,
       sources: [a, b],
@@ -401,8 +401,8 @@ describe('realm features', () => {
     const c = Signal()
 
     r.connect<[number, number]>({
-      map: (done) => (b, a) => {
-        done(a + b)
+      map: (done) => (bVal, aVal) => {
+        done(aVal + bVal)
       },
       pulls: [a],
       sink: c,
@@ -526,7 +526,7 @@ describe('singleton subscription', () => {
     const a = Cell(1)
     const b = Signal<number>()
 
-    r.changeWith(a, b, (a, b) => a + b)
+    r.changeWith(a, b, (aVal, bVal) => aVal + bVal)
     r.pub(b, 2)
     expect(r.getValue(a)).toEqual(3)
     r.pub(b, 2)
@@ -555,8 +555,8 @@ describe('singleton subscription', () => {
     r.link(
       r.pipe(
         s,
-        map(async (val) => {
-          return await new Promise<string>((resolve, reject) => {
+        map((val) => {
+          return new Promise<string>((resolve, reject) => {
             if (val === 2) {
               resolve('loaded')
             } else {
@@ -574,11 +574,15 @@ describe('singleton subscription', () => {
     )
 
     r.pub(s, 2)
-    await new Promise((resolve) => setTimeout(resolve, 0))
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0)
+    })
     expect(r.getValue(a)).toEqual('loaded')
 
     r.pub(s, 3)
-    await new Promise((resolve) => setTimeout(resolve, 0))
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0)
+    })
     expect(r.getValue(a)).toMatchObject(new Error('something went wrong'))
   })
 })

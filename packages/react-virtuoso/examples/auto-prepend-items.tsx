@@ -1,5 +1,6 @@
-import { faker } from '@faker-js/faker'
 import React from 'react'
+
+import { faker } from '@faker-js/faker'
 
 import { Virtuoso } from '../src'
 
@@ -29,7 +30,7 @@ const generateUsers = (length: number, startIndex = 0) => {
 }
 
 const getUser = (index: number) => {
-  if (!generated[index]) {
+  if (generated[index] === undefined) {
     generated[index] = user(index)
   }
 

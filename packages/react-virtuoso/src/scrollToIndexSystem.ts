@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { findMaxKeyValue } from './AATree'
 import { domIOSystem } from './domIOSystem'
-import { IndexLocationWithAlign } from './interfaces'
 import { loggerSystem, LogLevel } from './loggerSystem'
 import { offsetOf, originalIndexFromLocation, sizeSystem } from './sizeSystem'
 import * as u from './urx'
+
+import type { IndexLocationWithAlign } from './interfaces'
 
 export type IndexLocation = IndexLocationWithAlign | number
 
@@ -19,7 +19,7 @@ export function normalizeIndexLocation(location: IndexLocation) {
   if (!result.behavior || !SUPPORTS_SCROLL_TO_OPTIONS) {
     result.behavior = 'auto'
   }
-  if (!result.offset) {
+  if (result.offset === undefined) {
     result.offset = 0
   }
 
@@ -50,12 +50,12 @@ export const scrollToIndexSystem = u.system(
     let unsubscribeListRefresh: any = null
 
     function cleanup() {
-      if (unsubscribeNextListRefresh) {
+      if (unsubscribeNextListRefresh !== null) {
         unsubscribeNextListRefresh()
         unsubscribeNextListRefresh = null
       }
 
-      if (unsubscribeListRefresh) {
+      if (unsubscribeListRefresh !== null) {
         unsubscribeListRefresh()
         unsubscribeListRefresh = null
       }
@@ -97,7 +97,7 @@ export const scrollToIndexSystem = u.system(
               top -= topListHeight
             }
 
-            if (offset) {
+            if (offset !== undefined && offset !== 0) {
               top += offset
             }
 

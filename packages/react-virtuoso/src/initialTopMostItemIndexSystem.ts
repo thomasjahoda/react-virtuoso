@@ -24,6 +24,7 @@ export const initialTopMostItemIndexSystem = u.system(
       u.pipe(
         didMount,
         u.withLatestFrom(initialTopMostItemIndex),
+        // oxlint-disable-next-line eqeqeq
         u.filter(([_, location]) => location != null && location !== 0),
         u.mapTo(false)
       ),
@@ -33,6 +34,7 @@ export const initialTopMostItemIndexSystem = u.system(
       u.pipe(
         didMount,
         u.withLatestFrom(initialTopMostItemIndex),
+        // oxlint-disable-next-line eqeqeq
         u.filter(([_, location]) => location != null && location !== 0),
         u.mapTo(false)
       ),

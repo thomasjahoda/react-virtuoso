@@ -9,7 +9,7 @@ import ListItemAvatar from '@mui/material/ListItemAvatar'
 import ListItemText from '@mui/material/ListItemText'
 import ListSubheader from '@mui/material/ListSubheader'
 
-const MUIComponents: GroupedVirtuosoProps<unknown, unknown>['components'] = {
+const MUIComponents: GroupedVirtuosoProps<unknown>['components'] = {
   Group: ({ children, style, ...props }) => {
     return (
       <ListSubheader

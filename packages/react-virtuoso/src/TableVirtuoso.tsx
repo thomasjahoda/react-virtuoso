@@ -37,13 +37,13 @@ import type {
 } from './interfaces'
 
 const tableComponentPropsSystem = /*#__PURE__*/ u.system(() => {
-  const itemContent = u.statefulStream<ItemContent<any, unknown>>((index: number) => <td>Item ${index}</td>)
+  const itemContent = u.statefulStream<ItemContent<any>>((index: number) => <td>Item ${index}</td>)
   const context = u.statefulStream<unknown>(null)
-  const groupContent = u.statefulStream<GroupContent<unknown>>((index: number) => <td colSpan={1000}>Group {index}</td>)
+  const groupContent = u.statefulStream<GroupContent>((index: number) => <td colSpan={1000}>Group {index}</td>)
   const fixedHeaderContent = u.statefulStream<FixedHeaderContent>(null)
   const fixedFooterContent = u.statefulStream<FixedFooterContent>(null)
   const components = u.statefulStream<TableComponents>({})
-  const computeItemKey = u.statefulStream<ComputeItemKey<any, unknown>>(identity)
+  const computeItemKey = u.statefulStream<ComputeItemKey<any>>(identity)
   const scrollerRef = u.statefulStream<(ref: HTMLElement | null | Window) => void>(u.noop)
 
   const distinctProp = <K extends keyof TableComponents>(

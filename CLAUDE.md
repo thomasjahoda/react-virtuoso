@@ -1,6 +1,28 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code (claude.ai/code) working in this repository.
+
+## What this repo is
+
+A fork of [react-virtuoso](https://github.com/petyosi/react-virtuoso), a virtual-scroll React library.
+Fork owner: Thomas Jahoda. Published as `@thomasjahoda-forks/react-virtuoso`. Current fork version: see `packages/react-virtuoso/package.json` (`4.18.7-fork.*`).
+
+### Upstream sync status
+
+The fork tracks `upstream/main` (the upstream default branch — note: `upstream/master` is stale, do not use it). As of the last merge (commit `32195cfc5 Merge upstream/main`), the fork is up to date with `upstream/main`; all fork-specific commits sit on top.
+
+To list any new pending upstream commits:
+
+```sh
+git fetch upstream
+git log $(git merge-base HEAD upstream/main)..upstream/main --oneline
+```
+
+To list fork-only commits (everything above the merge-base):
+
+```sh
+git log upstream/main..HEAD --oneline
+```
 
 ## NPM Registry Queries
 
@@ -10,16 +32,32 @@ This project uses `devEngines.packageManager` with `"onFail": "error"` in `packa
 (cd /tmp && npm info <package> version)
 ```
 
+## Monorepo Structure
+
+```text
+packages/
+  react-virtuoso/    - Main virtualization library (library source under src/, vitest unit tests under test/, Playwright e2e tests under e2e/)
+  gurx/              - urx state management (fork/variant)
+  masonry/           - Masonry layout component
+  message-list/      - Chat/message list component
+  tooling/           - Shared build tooling
+
+apps/
+  virtuoso.dev/      - Starlight/Astro documentation site
+
+examples/            - Ladle stories for testing/development
+```
+
 ## Build Commands
 
-This is a pnpm workspaces monorepo. Run commands from the root or within specific workspace packages.
+pnpm workspaces monorepo. Run commands from the root or within specific workspace packages.
 
 ### Root-level commands
 
 Run from repository root for all packages:
 
 - Build all: `pnpm build`
-- Lint all (includes type checking): `pnpm lint`
+- Lint all (includes type checking): `pnpm lint` — **ignore `apps/virtuoso.dev` failures**; it has pre-existing lint errors that are not part of this fork's scope. Other workspaces (`packages/*`, `examples`) must be clean.
 - Format all: `pnpm format` (oxfmt)
 - Format check: `pnpm format:check`
 - Test all: `pnpm test`
@@ -29,6 +67,8 @@ Run from repository root for all packages:
 - Release: `pnpm release` (build + publish with changesets)
 - Add changeset: `pnpm changeset-add`
 - Dev docs site: `pnpm dev:docs`
+
+**Always run lint/test/format from the repo root**, not from a package subdir. Per-package runs miss issues in other workspaces (e.g. `examples/`) that consume the package and that CI will reject.
 
 ### react-virtuoso package (packages/react-virtuoso/)
 
@@ -68,34 +108,22 @@ These are auto-synced from source files + TypeDoc API via the `docsSync` integra
 - **gurx**: `packages/gurx/README.md` or `packages/gurx/docs/*.md`
 - **message-list**: `packages/message-list/README.md` or `packages/message-list/docs/*.md`
 
-## Monorepo Structure
-
-```text
-packages/
-  react-virtuoso/    - Main virtualization library
-  gurx/             - urx state management (fork/variant)
-  masonry/          - Masonry layout component
-  message-list/     - Chat/message list component
-  tooling/          - Shared build tooling
-
-apps/
-  virtuoso.dev/     - Starlight/Astro documentation site
-
-examples/            - Ladle stories for testing/development
-```
-
 ## Architecture
 
-### State Management: urx System
+### State Management: urx system
 
-The codebase uses **urx**, a custom reactive state management system built on streams/observables. Core concepts:
+All list-logic state lives in **urx streams** (custom reactive stream system at `packages/react-virtuoso/src/urx/`). The library has zero `useState` calls for list logic.
 
-- **Systems**: Stateful data-processing machines composed of streams
-- **Streams**: Can be stateless (signals) or stateful (depots that persist values)
-- **Depots**: Implicit state maintained in stateful streams, transformers (combineLatest), or operators (withLatestFrom, scan)
-- **Input/Output**: Systems receive input via input streams, process via transformers/operators, emit via output streams
+Core primitives:
 
-Key urx files: `src/urx/` directory contains:
+- `statefulStream(initial)` — holds a value, emits to new subscribers immediately
+- `stream<T>()` — no initial value; only emits when published to; `combineLatest` waits for first emit from every input
+- `pipe(source, ...transformers)` — transforms/combines streams
+- `connect(source, target)` — wires streams together
+- `publish(stream, value)` — push a value
+- `system(() => {...})` — module of related streams, composable with `u.tup(...)`
+
+Key urx files under `packages/react-virtuoso/src/urx/`:
 
 - `system.ts` - System creation and composition
 - `streams.ts` - Stream primitives
@@ -103,36 +131,45 @@ Key urx files: `src/urx/` directory contains:
 - `actions.ts` - Publishing/emitting
 - `transformers.ts` - Stream transformation utilities
 
-### Component Architecture
+### React binding (`src/react-urx/index.tsx`)
 
-The virtualization logic is split into modular systems in `src/`:
+`systemToComponent` wraps a urx system into a React component:
 
-**Core Systems:**
+- `useEmitterValue(key)` — subscribes to a stateful stream, triggers re-render on change
+- `usePublisher(key)` — returns a stable callback to publish to a stream
+- Uses `useIsomorphicLayoutEffect` for subscriptions (SSR-safe)
+- React 18+: uses `useSyncExternalStore`; legacy: `useState` + layoutEffect
 
-- `listSystem.ts` - Composes all feature systems into the main list system
-- `sizeSystem.ts` - Tracks and manages item sizes (critical for variable-height items)
-- `listStateSystem.ts` - Manages visible item ranges and scrolling state
-- `domIOSystem.ts` - DOM measurements and interactions
+### Systems (`src/*System.ts`)
 
-**Feature Systems:**
+Each system owns a slice of state:
 
-- `groupedListSystem.ts` - Grouped lists with sticky headers
-- `scrollToIndexSystem.ts` - Programmatic scroll positioning
-- `followOutputSystem.ts` - Auto-scroll for chat/feed UIs
-- `initialTopMostItemIndexSystem.ts` - Initial scroll position
-- `scrollSeekSystem.ts` - Placeholder rendering during fast scrolling
-- `windowScrollerSystem.ts` - Window-scrolling mode
-- And many more in `src/*System.ts` files
+| System                          | Owns                                                             |
+| ------------------------------- | ---------------------------------------------------------------- |
+| `domIOSystem`                   | viewportHeight, scrollTop, scrollHeight, deviation, layout flags |
+| `sizeSystem`                    | item sizes (measured via ResizeObserver per item)                |
+| `sizeRangeSystem`               | visible item range from viewport + scroll + overscan             |
+| `listStateSystem`               | computed list of rendered item descriptors                       |
+| `groupedListSystem`             | group headers, current sticky group                              |
+| `scrollToIndexSystem`           | imperative scroll-to-index                                       |
+| `followOutputSystem`            | auto-scroll for chat/feed UIs                                    |
+| `initialItemCountSystem`        | render N items before viewport size is known                     |
+| `initialTopMostItemIndexSystem` | initial scroll position                                          |
+| `scrollSeekSystem`              | placeholder rendering during fast scrolling                      |
+| `windowScrollerSystem`          | window-scrolling mode                                            |
 
-**React Integration:**
+`listSystem.ts` composes all feature systems into the main list system.
 
-- `react-urx/` - Bridges urx systems to React components
-- `Virtuoso.tsx` - Main list component
-- `VirtuosoGrid.tsx` - Grid layout component
-- `TableVirtuoso.tsx` - Table virtualization component
+### React components
+
+- `Virtuoso.tsx` — main list component
+- `VirtuosoGrid.tsx` — grid layout component
+- `TableVirtuoso.tsx` — table virtualization component
 - Component interfaces in `component-interfaces/`
 
-### Size Calculation
+Thin wrappers that (1) render the urx `Component` provider, (2) render inner structural components (`Viewport`, `Scroller`, `ItemList`, etc.), (3) wire DOM events back into urx streams via hooks (`hooks/useSize.ts`, `hooks/useScrollTop.ts`, `hooks/useWindowViewportRect.ts`).
+
+### Size calculation
 
 Variable-sized items work automatically via `sizeSystem.ts`:
 
@@ -141,13 +178,57 @@ Variable-sized items work automatically via `sizeSystem.ts`:
 - No manual height specification needed
 - `correctItemSize()` utility in `utils/` handles size corrections
 
-### E2E Testing
+### E2E testing
 
 E2E tests in `packages/react-virtuoso/e2e/`:
 
 - Test files: `*.test.ts` (Playwright tests)
 - Example pages: `examples/*.tsx` (rendered in browser for tests)
 - Use Ladle (`pnpm run ladle`) to preview examples during development
+
+## Fork-specific additions
+
+Fork-only commits sit on top of `upstream/main` (last synced via merge commit `32195cfc5`). Check `packages/react-virtuoso/package.json` for the current fork version, and `git log upstream/main..HEAD --oneline` for the full fork-commit list.
+
+### 1. `headerStickinessPerGroup` prop
+
+**Files**: `src/groupedListSystem.ts`, `src/component-interfaces/Virtuoso.ts`, `src/component-interfaces/TableVirtuoso.ts`, `src/Virtuoso.tsx`, `src/TableVirtuoso.tsx`
+
+Accepts `boolean[]` — one entry per group. When `false` for a group, that group's header does NOT stick to the top as the user scrolls through it. Defaults to `true` (sticky) for any unspecified groups.
+
+```tsx
+<Virtuoso
+  groupCounts={[10, 5, 8]}
+  headerStickinessPerGroup={[true, false, true]}
+  groupContent={(index) => <div>Group {index}</div>}
+  itemContent={(index) => <div>Item {index}</div>}
+/>
+```
+
+**Caveat**: `headerStickinessPerGroup` combines with `combineLatest(scrollTop, sizes, headerHeight, headerStickinessPerGroup)`. Because `headerStickinessPerGroup` is a plain `stream<boolean[]>` (not stateful), the sticky-group logic won't run until all four streams have emitted at least once.
+
+### 2. `keepMaximumViewportHeight` prop (boolean, default false)
+
+**Files**: `src/domIOSystem.ts`, `src/Virtuoso.tsx`, `src/TableVirtuoso.tsx`
+
+Performance hack for viewport-resize jitter. When `true`, the reported `viewportHeight` never decreases — it's the maximum height seen so far, rounded up to the nearest 100px. Prevents rapid mount/unmount cycles when the viewport shrinks slightly (e.g. virtual keyboard appearing/disappearing, browser chrome resize).
+
+Known limitations (see inline TODO comments):
+
+- May cause `scrollToIndex` to compute incorrect offsets since it uses viewport dimensions
+- May interact badly with small-viewport edge cases
+
+### 3. First-frame blank fix
+
+**Files**: `src/hooks/useSize.ts`, `src/hooks/useWindowViewportRect.ts`
+
+Upstream renders zero items on the first commit because viewport height is only published asynchronously via ResizeObserver (post-paint). Fix: `useSize` and `useWindowViewportRect` now run a `useIsomorphicLayoutEffect` that synchronously measures the viewport element pre-paint and publishes through the same callback. `viewportHeight` already de-dupes with `distinctUntilChanged`; `useWindowViewportRect` adds a field-wise dedup before publishing so subsequent ResizeObserver invocations with identical rects don't propagate.
+
+### 4. Typing improvements
+
+- Context type changed from `useless context` → `unknown` in component interfaces
+- Group header `zIndex` increased from `1` to `5` (allows items to have more internal layering without headers bleeding through)
+- ESM-compatible `package.json` (proper `"type": "module"`, `"exports"` field)
 
 ## Code Style
 
@@ -158,6 +239,9 @@ E2E tests in `packages/react-virtuoso/e2e/`:
 - Functional components with hooks preferred
 - Use urx system patterns for state management
 - Error handling: prefer early returns
+- New fork features should add the stream to the relevant `*System.ts`, expose it in the prop map (bottom of `Virtuoso.tsx` / `TableVirtuoso.tsx`), and add TypeScript types in `component-interfaces/`
+- Unit tests use vitest + JSDOM with mocked hooks (`src/hooks/__mocks__/`)
+- E2E tests use Playwright against the dev app
 
 ## Markdown Style Guide
 
@@ -202,11 +286,11 @@ const foo = 'bar'
 
 ## Code Change Checklist
 
-After making code changes, run these commands to verify quality:
+After making code changes, run these commands to verify quality.
 
-### Required (always run)
+### Required (always run, from repo root)
 
-- `pnpm lint` - Lint and type check (oxlint --type-aware --type-check)
+- `pnpm lint` - Lint and type check (oxlint --type-aware --type-check). Ignore `apps/virtuoso.dev` failures.
 - `pnpm format` - Format code with oxfmt
 - `pnpm test` - Run unit tests (vitest)
 
@@ -234,7 +318,7 @@ Pre-commit hooks will block commits if lint (which includes type checking) fails
 ## Development Workflow
 
 1. Make changes in `packages/react-virtuoso/src/`
-2. Run `pnpm format && pnpm lint && pnpm test`
+2. From repo root: `pnpm format && pnpm lint && pnpm test`
 3. Check examples with `pnpm run ladle` if UI changes
 4. Run `pnpm e2e` for end-to-end validation if needed
 5. Add changeset with `pnpm changeset-add` for versioned changes
@@ -266,3 +350,7 @@ LEFTHOOK=0 git commit -m "WIP: work in progress"
 - Install hooks: `pnpm exec lefthook install`
 - Uninstall hooks: `pnpm exec lefthook uninstall`
 - Run manually: `pnpm exec lefthook run pre-commit`
+
+## Agent rules
+
+- `dangerouslyDisableSandbox`: only for `npm publish` / `pnpm publish`. Never for git, file ops, or anything else.
